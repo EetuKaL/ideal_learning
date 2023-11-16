@@ -6,6 +6,38 @@
   align-items: center;      
 }
 
+.button-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center; 
+}
+.delete-button{
+  margin-top: 50px;
+  padding: 10px 20px;
+
+  position: relative;
+ 
+  
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  width: 150px; /* Example width */
+  height: 40px; /* Example height */
+  box-sizing: border-box; /* Keeps the width and height inclusive of padding and borders */
+}
+
+.delete-popup{
+  position: absolute;
+  background-color: red;
+}
+
 .name-input{
   padding: 10px;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
