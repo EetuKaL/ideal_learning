@@ -20,109 +20,99 @@ export function listReducer(state, action) {
         }
       }
       case 'switch_list': {
-        switch (action.side) {
-        
-            case 'left': {
-              let updatedRightList;
-              let newLeftList;
-                console.log('filtered left list on tyhjä: ', state.filteredLeftList.length === 0);
-                console.log(state.filteredLeftList, state.filteredRightList);
-                console.log('reading concat from' , state.rightList)
-                updatedRightList = state.rightList.concat(
-                  state.filteredLeftList.length === 0 ?
+       
+              const stateCopy = Object.assign({}, state);
+              const side = action.side;
+              let clickedListKey
+              let clickedList
+              let oppositeSideListKey
+              let oppositeSideList
+              let filteredList
+
+              // Check which lists are processed.
+              if (side === 'left') {
+                clickedListKey = 'leftList'
+                clickedList = stateCopy.leftList
+                oppositeSideListKey = 'rightList'
+                oppositeSideList = stateCopy.rightList
+                filteredList = stateCopy.filteredLeftList
+              } else {
+                clickedListKey = 'rightList'
+                clickedList = stateCopy.rightList
+                oppositeSideListKey = 'leftList'
+                oppositeSideList = stateCopy.leftList
+                filteredList = stateCopy.filteredRightList
+              }
+             
+     
+                const updatedOppositeSideList = oppositeSideList.concat(
+                  filteredList.length === 0 ?
                     
-                  state.leftList.filter(item => item.selected === true).map(item => ({
+                  clickedList.filter(item => item.selected === true).map(item => ({
                         ...item,
                         selected: false
                     }))
                     :
-                    state.filteredLeftList.filter(item => item.selected === true).map(item => ({
+                    filteredList.filter(item => item.selected === true).map(item => ({
                         ...item,
                         selected: false
                     }))
                     );
     
-                newLeftList = state.leftList.filter(item => item.selected !== true);
+                const newClickedList = clickedList.filter(item => item.selected !== true);
     
                 const newState = {
-                    ...state,
-                    leftList: newLeftList,
-                    rightList: updatedRightList,
+                    ...stateCopy,
+                    [clickedListKey]: newClickedList,
+                    [oppositeSideListKey]: updatedOppositeSideList,
                     searchNameInput: '',
                     filteredLeftList: [],
-                    filteredRightList: []
-                };
+                    filteredRightList: [],
                 
-                updateLocalStorage(newLeftList, updatedRightList);
+                };
+
                 newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
                 newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
+                updateLocalStorage(newClickedList, updatedOppositeSideList);
                 return newState;
-              }
-            case 'right': {
-                let updatedLeftList;
-                let newRightList;
-                console.log(state.filteredLeftList, state.filteredRightList);
-                console.log('reading concat from' , state.rightListList)
-                updatedLeftList = state.leftList.concat(
-                  state.filteredRightList.length === 0 ?
-                    state.rightList.filter(item => item.selected === true).map(item => ({
-                        ...item,
-                        selected: false
-                      }))
-                      :
-                      state.filteredRightList.filter(item => item.selected === true).map(item => ({
-                        ...item,
-                        selected: false
-                      }))
-                
-                      );
-    
-                newRightList = state.rightList.filter(item => item.selected !== true);
-    
-                const newState = {
-                    ...state,
-                    leftList: updatedLeftList,
-                    rightList: newRightList,
-                    searchNameInput: '',
-                    filteredLeftList: [],
-                    filteredRightList: []
-                };
-    
-                newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
-                newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
-                updateLocalStorage(updatedLeftList, newRightList);
-                return newState;
-            }
-            default:
-                return state;
-        }
+              
+         
+        
     }
         
       case 'select_item': {
        const {isSelected, side, index} = action;
           let newState = Object.assign({}, state);
+          let clickedListKey
           let clickedList
-          let oppositeSideList
-          let situation 
-          // Check which list will be processed.
+          let oppositeSideListKey
+          let oppositeSideList          
+          // Check which lists are processed.
           if (side === 'left') {
             if (newState.filteredLeftList.length === 0){
-              situation = 'left-notFiltered'
+             
+              clickedListKey = 'leftList'
+              oppositeSideListKey = 'rightList'
               clickedList = newState.leftList;
               oppositeSideList = newState.rightList;
             } else {
-              situation = 'left-filtered'
+            
+              clickedListKey = 'filteredLeftList'
+              oppositeSideListKey = 'filteredRightList'
               clickedList = newState.filteredLeftList
               oppositeSideList = newState.filteredRightList
             }
           } else {
             if(newState.filteredRightList.length === 0){
-              situation = 'right-notFiltered'
+              clickedListKey = 'rightList'
+              oppositeSideListKey = 'leftList'    
               clickedList = newState.rightList;
               oppositeSideList = newState.leftList;
             }
             else {
-              situation = 'right-filtered'
+              
+              clickedListKey = 'filteredRightList'
+              oppositeSideListKey = 'filteredLeftList'
               clickedList = newState.filteredRightList;
               oppositeSideList = newState.filteredLeftList;
             }
@@ -136,10 +126,8 @@ export function listReducer(state, action) {
          
        
           return {...newState,
-          leftList: situation === 'left-notFiltered' ? clickedList : situation === 'right-notFiltered' ? oppositeSideList : newState.leftList,
-          rightList: situation === 'right-notFiltered' ? clickedList : situation === 'left-notFiltered' ? oppositeSideList : newState.rightList,
-          filteredLeftList: situation === 'left-filtered' ? clickedList : situation === 'right-filtered' ? oppositeSideList : newState.filteredLeftList,
-          filteredRightList: situation === 'right-filtered' ? clickedList : situation === 'left-filtered' ? oppositeSideList : newState.filteredRightList,
+            [clickedListKey] : clickedList,
+            [oppositeSideListKey] : oppositeSideList,
           itemIsSelected_left: state.leftList.some((i) => i.selected == true),
           itemIsSelected_right: state.rightList.some((i) => i.selected == true)
           }
