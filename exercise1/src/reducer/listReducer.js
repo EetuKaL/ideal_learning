@@ -1,68 +1,148 @@
 
 
+
+
 export function listReducer(state, action) {
+
+  const updateLocalStorage = (leftList, rightList) => {
+    localStorage.setItem('leftList', JSON.stringify({
+      leftList: leftList,
+  }))
+  localStorage.setItem('rightList', JSON.stringify({
+    rightList: rightList,
+}))
+  }
     switch (action.type) {
       case 'set_initial_state_from_storage': {
         return {...state,
-          leftList: action.leftList.length() > 0 ? action.leftList.leftList : state.leftList,
-          rightList: action.rightList.length() > 0 ? action.rightList.rightList : state.rightList
+          leftList: action.leftList ? action.leftList.leftList : state.leftList,
+          rightList: action.rightList ? action.rightList.rightList : state.rightList
         }
       }
       case 'switch_list': {
-        // Create later on one dynamic function to handle both sides.
-        switch(action.side) {
+        switch (action.side) {
+        
             case 'left': {
-              let newState = {
-                ...state,
-                leftList: state.leftList.filter(item => {
-                    if (item.selected === true) {
-                        state.rightList.push({ ...item, selected: false });
-                        return false; // If selected, don't return back to leftlist.
-                    }
-                    return true; // If not selected, keep item in the leftList
-                })
-            };
-            return newState;
+              let updatedRightList;
+              let newLeftList;
+                console.log('filtered left list on tyhjä: ', state.filteredLeftList.length === 0);
+                console.log(state.filteredLeftList, state.filteredRightList);
+                console.log('reading concat from' , state.rightList)
+                updatedRightList = state.rightList.concat(
+                  state.filteredLeftList.length === 0 ?
+                    
+                  state.leftList.filter(item => item.selected === true).map(item => ({
+                        ...item,
+                        selected: false
+                    }))
+                    :
+                    state.filteredLeftList.filter(item => item.selected === true).map(item => ({
+                        ...item,
+                        selected: false
+                    }))
+                    );
+    
+                newLeftList = state.leftList.filter(item => item.selected !== true);
+    
+                const newState = {
+                    ...state,
+                    leftList: newLeftList,
+                    rightList: updatedRightList,
+                    searchNameInput: '',
+                    filteredLeftList: [],
+                    filteredRightList: []
+                };
+                
+                updateLocalStorage(newLeftList, updatedRightList);
+                newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
+                newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
+                return newState;
+              }
+            case 'right': {
+                let updatedLeftList;
+                let newRightList;
+                console.log(state.filteredLeftList, state.filteredRightList);
+                console.log('reading concat from' , state.rightListList)
+                updatedLeftList = state.leftList.concat(
+                  state.filteredRightList.length === 0 ?
+                    state.rightList.filter(item => item.selected === true).map(item => ({
+                        ...item,
+                        selected: false
+                      }))
+                      :
+                      state.filteredRightList.filter(item => item.selected === true).map(item => ({
+                        ...item,
+                        selected: false
+                      }))
+                
+                      );
+    
+                newRightList = state.rightList.filter(item => item.selected !== true);
+    
+                const newState = {
+                    ...state,
+                    leftList: updatedLeftList,
+                    rightList: newRightList,
+                    searchNameInput: '',
+                    filteredLeftList: [],
+                    filteredRightList: []
+                };
+    
+                newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
+                newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
+                updateLocalStorage(updatedLeftList, newRightList);
+                return newState;
             }
-            case 'right' : {
-              let newState = {
-                ...state,
-                rightList: state.rightList.filter(item => {
-                    if (item.selected === true) {
-                        state.leftList.push({ ...item, selected: false });
-                        return false; // If selected, don't return back to rightlist.
-                    }
-                    return true; // If not selected, keep item in the rightList
-                })
-            };
-            return newState;
-            }
-            default: break;
+            default:
+                return state;
         }
     }
         
       case 'select_item': {
-            
-          const side = action.side
-          const index = action.index
+       const {isSelected, side, index} = action;
           let newState = Object.assign({}, state);
-            
-          if (side === 'left'){
-            newState.rightList.forEach(item => {
-              item.selected = false
-            });
-            newState.leftList[index].selected = !newState.leftList[index].selected
-          } 
-          else{
-            newState.leftList.forEach(item => {
-              item.selected = false
-            });
-            newState.rightList[index].selected = !state.rightList[index].selected
-            
+          let clickedList
+          let oppositeSideList
+          let situation 
+          // Check which list will be processed.
+          if (side === 'left') {
+            if (newState.filteredLeftList.length === 0){
+              situation = 'left-notFiltered'
+              clickedList = newState.leftList;
+              oppositeSideList = newState.rightList;
+            } else {
+              situation = 'left-filtered'
+              clickedList = newState.filteredLeftList
+              oppositeSideList = newState.filteredRightList
+            }
+          } else {
+            if(newState.filteredRightList.length === 0){
+              situation = 'right-notFiltered'
+              clickedList = newState.rightList;
+              oppositeSideList = newState.leftList;
+            }
+            else {
+              situation = 'right-filtered'
+              clickedList = newState.filteredRightList;
+              oppositeSideList = newState.filteredLeftList;
+            }
           }
-          newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
-          newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
-          return newState
+          // Unclick all from opposite side
+            oppositeSideList.forEach(item => {
+              item.selected = false
+            });
+          // Select item from clickedlist.
+            clickedList[index].selected = isSelected
+         
+       
+          return {...newState,
+          leftList: situation === 'left-notFiltered' ? clickedList : situation === 'right-notFiltered' ? oppositeSideList : newState.leftList,
+          rightList: situation === 'right-notFiltered' ? clickedList : situation === 'left-notFiltered' ? oppositeSideList : newState.rightList,
+          filteredLeftList: situation === 'left-filtered' ? clickedList : situation === 'right-filtered' ? oppositeSideList : newState.filteredLeftList,
+          filteredRightList: situation === 'right-filtered' ? clickedList : situation === 'left-filtered' ? oppositeSideList : newState.filteredRightList,
+          itemIsSelected_left: state.leftList.some((i) => i.selected == true),
+          itemIsSelected_right: state.rightList.some((i) => i.selected == true)
+          }
     } 
 
     case 'add_name_input': {
@@ -83,12 +163,7 @@ export function listReducer(state, action) {
     }
     newState.leftList.push({name: action.name, selected: false})
     newState.rightList = [...state.rightList]
-      localStorage.setItem('leftList', JSON.stringify({
-          leftList: newState.leftList,
-      }))
-      localStorage.setItem('rightList', JSON.stringify({
-        rightList: newState.rightList,
-    }))
+     updateLocalStorage(newState.leftList, newState.rightList)
 
       return newState
     }
@@ -102,12 +177,21 @@ export function listReducer(state, action) {
       }
       newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
       newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
-      localStorage.setItem('leftList', JSON.stringify({
-        leftList: newState.leftList,
-    }))
-    localStorage.setItem('rightList', JSON.stringify({
-      rightList: newState.rightList,
-  }))
+      updateLocalStorage(newState.leftList, newState.rightList)
+      return newState;
+    }
+
+    case 'search_name_input': {
+      const newState = {
+        ...state,
+      searchNameInput : action.searchNameInput,
+      }
+      newState.filteredLeftList = newState.leftList.filter(item =>
+        item.name.toLowerCase().includes(newState.searchNameInput.toLowerCase())
+      );
+      newState.filteredRightList = newState.rightList.filter(item =>
+        item.name.toLowerCase().includes(newState.searchNameInput.toLowerCase())
+      );
       return newState;
     }
 
