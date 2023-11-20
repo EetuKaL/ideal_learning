@@ -1,5 +1,7 @@
 
-export default function ListBox ({list, dispatch, side}) {
+
+
+export default function ListBox ({list, select, side}) {
   
     return <div className="list-box-container">
       <h1>{side} list</h1>
@@ -7,7 +9,7 @@ export default function ListBox ({list, dispatch, side}) {
         {typeof(list) !== 'undefined' && list.length > 0 ? list.map((item, index) => {
         return  <button style={{
             color: item.selected ? 'green' : 'black'
-          }}key={index} className='list-item' onClick={() => dispatch({type:'select_item', index: index, side:side, isSelected: !item.selected})
+          }}key={index} className='list-item' onClick={() => select(index, side, !item.selected)
           }>{item.name}</button>
           
         }): <p>No items added yet</p>}        
