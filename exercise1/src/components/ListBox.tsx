@@ -1,7 +1,14 @@
 import React from "react"
 import { ListItem } from "../types/types"
 
-export default function ListBox ({list, select, side}) {
+
+interface ListBoxProps {
+  list: ListItem[];
+  select: (index: number, side: string, isSelected: boolean) => void;
+  side: string;
+}
+
+ const ListBox: React.FC<ListBoxProps> = ({list, select, side}) => {
     return <div className="list-box-container">
       <h1>{side} list</h1>
     <section className='list-box'>
@@ -16,3 +23,5 @@ export default function ListBox ({list, select, side}) {
       </div>
     
 }
+
+export default ListBox;

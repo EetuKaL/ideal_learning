@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import './App.css';
 
-import ListBox from './components/ListBox.tsx';
+import ListBox from './components/ListBox';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   select_item,
@@ -11,8 +11,9 @@ import {
   add_name_input,
   set_initial_state_from_storage,
   switch_list,
-} from './features/list/listSlice.tsx';
+} from './features/list/listSlice';
 import { RootState } from './store'; 
+import { ListItem } from './types/types';
 
 function App() {
   const reduxState = useSelector((state: RootState) => state.list);
@@ -28,8 +29,8 @@ function App() {
 
   useEffect(() => {
     const fetchLocalStorage = () => {
-      const leftList = JSON.parse(localStorage.getItem('leftList') || 'null');
-      const rightList = JSON.parse(localStorage.getItem('rightList') || 'null');
+      const leftList: ListItem[] = JSON.parse(localStorage.getItem('leftList') || 'null');
+      const rightList: ListItem[] = JSON.parse(localStorage.getItem('rightList') || 'null');
       if (rightList && leftList) {
         reduxDispatch(
           set_initial_state_from_storage({
@@ -39,7 +40,6 @@ function App() {
         );
       }
     };
-
     fetchLocalStorage();
   }, [reduxDispatch]);
 
@@ -73,7 +73,7 @@ side={'right'}/>
   {<button onClick={() => reduxDispatch(delete_item())} style={{backgroundColor: reduxState.itemIsSelected_right || reduxState.itemIsSelected_left ? '#3498db' : 'grey'}} className ='delete-button'>delete</button>}
   
 </div>
-    // JSX structure...
+  
   );
 }
 
