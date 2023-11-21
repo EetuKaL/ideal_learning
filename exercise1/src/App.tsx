@@ -12,7 +12,7 @@ import {
   set_initial_state_from_storage,
   switch_list,
 } from './features/list/listSlice.tsx';
-import { RootState } from './store'; // Import your RootState type
+import { RootState } from './store'; 
 
 function App() {
   const reduxState = useSelector((state: RootState) => state.list);
@@ -29,13 +29,7 @@ function App() {
   useEffect(() => {
     const fetchLocalStorage = () => {
       const leftList = JSON.parse(localStorage.getItem('leftList') || 'null');
-      console.log('================leftlist====================');
-      console.log(leftList);
-      console.log('==================leftlist==================');
       const rightList = JSON.parse(localStorage.getItem('rightList') || 'null');
-      console.log('===============rightlist=====================');
-      console.log(rightList);
-      console.log('=============rightlist=======================');
       if (rightList && leftList) {
         reduxDispatch(
           set_initial_state_from_storage({
@@ -47,14 +41,7 @@ function App() {
     };
 
     fetchLocalStorage();
-    console.log('====================================');
-    console.log('tsx');
-    console.log('redux state on');
-    console.log(reduxState);
-    console.log('====================================');
   }, [reduxDispatch]);
-
-  // Rest of your component remains the same...
 
   return ( <div className="App">
   <h2>Search</h2>

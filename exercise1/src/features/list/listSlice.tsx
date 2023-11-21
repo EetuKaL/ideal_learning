@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 /* import { RootState } from '../types';  */// Import your RootState type
 import { v4 as uid } from 'uuid';
-import { ListItem, ListState } from '../../types/types';
+import { Keys, ListItem, ListState } from '../../types/types.tsx';
 import { current } from '@reduxjs/toolkit'
 
 const updateLocalStorage = (leftList, rightList) => {
@@ -36,44 +36,35 @@ export const listSlice = createSlice({
   initialState,
   reducers: {
     select_item: (state, action: PayloadAction<{ isSelected: boolean; side: string; index: number }>) => {
-      const { isSelected, side, index } = action.payload;
-      console.log('state is when selecting: ', current(state))
-      
-      let clickedListKey
-      let clickedList
-      let oppositeSideListKey
-      let oppositeSideList
+      const { isSelected, side, index } = action.payload;  
+      let clickedListKey: Keys
+      let clickedList: ListItem[]
+      let oppositeSideListKey: Keys
+      let oppositeSideList: ListItem[]
  
       // Check which lists are processed.
       if (side === 'left') {
         if (state.filteredLeftList.length === 0){
-          console.log('handling left')
-          clickedListKey = 'leftList'
-          oppositeSideListKey = 'rightList'
+          clickedListKey = Keys.Left
+          oppositeSideListKey = Keys.Right
           clickedList = state.leftList;
           oppositeSideList = state.rightList;
       } else {
-            console.log('handling left filtered')
-            
-            clickedListKey = 'filteredLeftList'
-            oppositeSideListKey = 'filteredRightList'
+            clickedListKey = Keys.FilteredLeft
+            oppositeSideListKey = Keys.FilteredRight
             clickedList = state.filteredLeftList
             oppositeSideList = state.filteredRightList
-     
           }
       } else {
           if(state.filteredRightList.length === 0){
-              console.log('handling right')
-              clickedListKey = 'rightList'
-              oppositeSideListKey = 'leftList'    
+              clickedListKey = Keys.Right
+              oppositeSideListKey = Keys.Left    
               clickedList = state.rightList;
               oppositeSideList = state.leftList;
           }
           else {
-            console.log('handling rightfiltered')
-          
-          clickedListKey = 'filteredRightList'
-          oppositeSideListKey = 'filteredLeftList'
+          clickedListKey = Keys.FilteredRight
+          oppositeSideListKey = Keys.FilteredLeft
           clickedList = state.filteredRightList;
           oppositeSideList = state.filteredLeftList;
     
@@ -93,10 +84,6 @@ export const listSlice = createSlice({
         state[oppositeSideListKey] = oppositeSideList
         state.itemIsSelected_left = state.leftList.some((i) => i.selected == true) || state.filteredLeftList.some((i) => i.selected == true)
         state.itemIsSelected_right = state.rightList.some((i) => i.selected == true) || state.filteredRightList.some((i) => i.selected == true)
-       
-        console.log('after selection state is', current(state))
-
-       
      
     },
     set_initial_state_from_storage: (state, action: PayloadAction<{ leftList: ListItem[]; rightList: ListItem[] }>) => {
@@ -106,23 +93,23 @@ export const listSlice = createSlice({
     switch_list: (state, action: PayloadAction<{ side: string }>) => {
         const stateCopy = Object.assign({}, state);
         const side = action.payload.side
-        let clickedListKey: string
+        let clickedListKey: Keys
         let clickedList: ListItem[]
-        let oppositeSideListKey: string
+        let oppositeSideListKey: Keys
         let oppositeSideList: ListItem[]
         let filteredList: ListItem[]
 
         // Check which lists are processed.
         if (side === 'left') {
-          clickedListKey = 'leftList'
+          clickedListKey = Keys.Left
           clickedList = stateCopy.leftList
-          oppositeSideListKey = 'rightList'
+          oppositeSideListKey = Keys.Right
           oppositeSideList = stateCopy.rightList
           filteredList = stateCopy.filteredLeftList
         } else {
-          clickedListKey = 'rightList'
+          clickedListKey = Keys.Right
           clickedList = stateCopy.rightList
-          oppositeSideListKey = 'leftList'
+          oppositeSideListKey = Keys.Left
           oppositeSideList = stateCopy.leftList
           filteredList = stateCopy.filteredRightList
         }
@@ -164,9 +151,6 @@ export const listSlice = createSlice({
       state.addNameInput = action.payload.addNameInput;
     },
     add_name: (state: ListState, action: PayloadAction<{ name: string }>) => {
-        console.log('=============ccurrentstate is=======================');
-        console.log(current(state));
-        console.log('====================================');
       state.leftList.push({ id: uid(), name: action.payload.name, selected: false });
       state.addNameInput = '';
       updateLocalStorage(state.leftList, state.rightList)
@@ -174,6 +158,7 @@ export const listSlice = createSlice({
     delete_item: (state) => {
       state.leftList = state.leftList.filter((i) => !i.selected);
       state.rightList = state.rightList.filter((i) => !i.selected);
+      updateLocalStorage(state.leftList, state.rightList)
     },
     search_name_input: (state, action: PayloadAction<{ searchNameInput: string }>) => {
       state.searchNameInput = action.payload.searchNameInput;

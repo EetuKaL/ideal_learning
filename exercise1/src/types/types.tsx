@@ -19,4 +19,11 @@ export type ListItem = {
     Left,
     Right
   }
+
+  export enum Keys {
+    Left = 'leftList',
+    Right = 'rightList',
+    FilteredLeft = 'filteredLeftList',
+    FilteredRight = 'filteredRightList'
+  }
   
