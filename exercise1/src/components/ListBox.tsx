@@ -1,8 +1,6 @@
-
-
+import React from "react"
 
 export default function ListBox ({list, select, side}) {
-  
     return <div className="list-box-container">
       <h1>{side} list</h1>
     <section className='list-box'>
