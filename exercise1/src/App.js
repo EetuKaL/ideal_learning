@@ -1,28 +1,16 @@
 
 import { useState, useReducer, useEffect } from 'react';
 import './App.css';
-import { listReducer } from './reducer/listReducer';
+
 import ListBox from './components/ListBox';
 import { useSelector, useDispatch } from 'react-redux'
 import {select_item, search_name_input, 
   delete_item, add_name, add_name_input, set_initial_state_from_storage, switch_list  } from './features/list/listSlice';
 
-/* const initialState = {
 
-      'leftList': [{'name': 'Mike', 'selected': false}, {'name': 'Hank', 'selected':false}],
-      'rightList': [{'name': 'Mark', 'selected': false}, {'name': 'Dwayne', 'selected':false}, {'name':'Mark', 'selected':false},],
-      'itemIsSelected_left': false,
-      'itemIsSelected_right': false,
-      'addNameInput': '',
-      'searchNameInput' : '',
-      'filteredLeftList': '',
-      'filteredRightList': ''
-
-}
- */
 
 function App() {
-/*   const [state, dispatch] = useReducer(listReducer, initialState); */
+
   const reduxState = useSelector((state) => state.list)
   const reduxDispatch = useDispatch()
 
@@ -47,7 +35,6 @@ function App() {
     };
 
     fetchLocalStorage();
-    console.log('redux state pitää sisällään: ' , reduxState)
   }, []);
 
   return (

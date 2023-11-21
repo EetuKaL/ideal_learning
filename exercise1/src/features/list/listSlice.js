@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { current } from '@reduxjs/toolkit'
+import { v4 as uid } from 'uuid';
 
 const updateLocalStorage = (leftList, rightList) => {
     localStorage.setItem('leftList', JSON.stringify({
@@ -13,8 +14,8 @@ const updateLocalStorage = (leftList, rightList) => {
 const initialState = 
     {
 
-        'leftList': [{'name': 'Mike', 'selected': false}, {'name': 'Hank', 'selected':false}],
-        'rightList': [{'name': 'Mark', 'selected': false}, {'name': 'Dwayne', 'selected':false}, {'name':'Mark', 'selected':false},],
+        'leftList': [{'id': uid(), 'name': 'Mike', 'selected': false}, {'id': uid(), 'name': 'Hank', 'selected':false}],
+        'rightList': [{'id': uid(), 'name': 'Mark', 'selected': false}, {'id': uid(), 'name': 'Dwayne', 'selected':false},],
         'itemIsSelected_left': false,
         'itemIsSelected_right': false,
         'addNameInput': '',
@@ -126,7 +127,7 @@ export const listSlice = createSlice({
         }
        
 
-          const updatedOppositeSideList = oppositeSideList.concat(
+        const updatedOppositeSideList = oppositeSideList.concat(
             filteredList.length === 0 ?
               
             clickedList.filter(item => item.selected === true).map(item => ({
@@ -140,12 +141,12 @@ export const listSlice = createSlice({
               }))
               );
 
-          let newClickedList = clickedList.filter(item => item.selected !== true);
-         
-
+          
+          clickedList = clickedList.filter(item => item.selected !== true)
+          clickedList = clickedList.filter(item => !filteredList.some(filteredItem => filteredItem.id === item.id && filteredItem.selected));
           const newState = {
               ...stateCopy,
-              [clickedListKey]: newClickedList,
+              [clickedListKey]: clickedList,
               [oppositeSideListKey]: updatedOppositeSideList,
               searchNameInput: '',
               filteredLeftList: [],
@@ -155,15 +156,18 @@ export const listSlice = createSlice({
 
           newState.itemIsSelected_left = newState.leftList.some((i) => i.selected == true)
           newState.itemIsSelected_right = newState.rightList.some((i) => i.selected == true)
-          updateLocalStorage(newClickedList, updatedOppositeSideList);
-          return newState
+          updateLocalStorage(clickedList, updatedOppositeSideList);
+          return newState;
+        
     },
 
     add_name_input: (state, action) => {
         state.addNameInput = action.payload.addNameInput
     },
     add_name: (state,action) => {
-        state.leftList.push({name: action.payload.name, selected: false})
+        state.leftList.push({id: uid(), name: action.payload.name, selected: false})
+        state.addNameInput = ''
+        console.log('new state is', current(state))
         updateLocalStorage(state.leftList, state.rightList)
     },
     delete_item: (state, action) => {
