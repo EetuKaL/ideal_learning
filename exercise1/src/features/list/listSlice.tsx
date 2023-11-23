@@ -4,14 +4,7 @@ import { v4 as uid } from 'uuid';
 import { Keys, ListItem, ListState } from '../../types/types';
 import { current } from '@reduxjs/toolkit'
 
-const updateLocalStorage = (leftList: ListItem[], rightList: ListItem[]) => {
-    localStorage.setItem('leftList', JSON.stringify(
-      leftList,
-))
-  localStorage.setItem('rightList', JSON.stringify(
-   rightList,
-))
-}
+
 
 const initialState: ListState = {
   leftList: [
@@ -144,7 +137,7 @@ export const listSlice = createSlice({
 
           newState.itemIsSelected_left = newState.leftList.some((i) => i.selected === true)
           newState.itemIsSelected_right = newState.rightList.some((i) => i.selected === true)
-          updateLocalStorage(newState.leftList, newState.rightList);
+       
           return newState;
     },
     add_name_input: (state, action: PayloadAction<{ addNameInput: string }>) => {
@@ -153,14 +146,13 @@ export const listSlice = createSlice({
     add_name: (state: ListState, action: PayloadAction<{ name: string }>) => {
       state.leftList.push({ id: uid(), name: action.payload.name, selected: false });
       state.addNameInput = '';
-      updateLocalStorage(state.leftList, state.rightList)
     },
     delete_item: (state) => {
       state.leftList = state.leftList.filter((i) => !i.selected);
       state.rightList = state.rightList.filter((i) => !i.selected);
       state.itemIsSelected_left = false
       state.itemIsSelected_right = false
-      updateLocalStorage(state.leftList, state.rightList)
+    
     },
     search_name_input: (state, action: PayloadAction<{ searchNameInput: string }>) => {
       state.searchNameInput = action.payload.searchNameInput;
