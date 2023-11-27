@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import listReducer from './features/list/listSlice';
+import questionReducer from './features/question/questionSlice';
 
 const store = configureStore({
   reducer: {
-    list: listReducer,
+    questions: questionReducer,
     // Add other reducers here if present in your store
   },
 });

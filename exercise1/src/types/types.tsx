@@ -1,18 +1,23 @@
-export type ListItem = {
+export type Question = {
     id: string;
-    name: string;
-    selected: boolean;
+    question_text: string;
+    options: string[];
+    correct_answer: string;
+    selected_answer?: string;
+
   };
   
-  export type ListState = {
-    leftList: ListItem[];
-    rightList: ListItem[];
-    itemIsSelected_left: boolean;
-    itemIsSelected_right: boolean;
-    addNameInput: string;
-    searchNameInput: string;
-    filteredLeftList: ListItem[];
-    filteredRightList: ListItem[];
+  export type CreateQuestionItem = {
+    description: string;
+    value: any;
+  }
+  export type QuestionState = {
+    questions: Question[];
+    createQuestion: CreateQuestionItem[];
+    allQuestionAnswered: boolean;
+    showAddQuestionModal: boolean;
+    createQuestionStep: number;
+    createQuestionInput: string;
   };
 
   export enum Side {

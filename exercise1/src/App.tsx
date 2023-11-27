@@ -1,97 +1,83 @@
 import React, { useEffect } from 'react';
 import './App.css';
 
-import ListBox from './components/ListBox';
+import QuestionListBox from './components/QuestionListBox';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  select_item,
-  search_name_input,
-  delete_item,
-  add_name,
-  add_name_input,
-  set_initial_state_from_storage,
-  switch_list,
-} from './features/list/listSlice';
+
 import { RootState } from './store';
-import { ListItem } from './types/types';
+import { Question } from './types/types';
+import { handle_create_question_input, next_create_question_step, toggle_add_question_modal } from './features/question/questionSlice';
 
 function App() {
-  const reduxState = useSelector((state: RootState) => state.list);
-  const reduxDispatch = useDispatch();
+  const dispatch = useDispatch();
+  const state = useSelector((state: RootState) => state.questions);
+  const allQuestionAnswered = state.questions.some((question) => !question.selected_answer)
 
-  const handleAddNameInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    reduxDispatch(add_name_input({ addNameInput: event.target.value }));
-  };
-
-  const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    reduxDispatch(search_name_input({ searchNameInput: event.target.value }));
-  };
+ const handleCreateQuestionClick = () => {
+  dispatch(next_create_question_step({step: state.createQuestionStep + 1}))
+}
+  
+  const handleCreateQuestionInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(handle_create_question_input({input: event.target.value}))
+  }
 
   useEffect(() => {
     const fetchLocalStorage = () => {
-      const leftList: ListItem[] = JSON.parse(localStorage.getItem('leftList') || 'null');
-      const rightList: ListItem[] = JSON.parse(localStorage.getItem('rightList') || 'null');
-      if (rightList && leftList) {
-        reduxDispatch(
-          set_initial_state_from_storage({
-            leftList,
-            rightList,
-          })
-        );
-      }
-    };
+      const leftList: Question[] = JSON.parse(localStorage.getItem('leftList') || 'null');
+      const rightList: Question[] = JSON.parse(localStorage.getItem('rightList') || 'null');
+    }
     fetchLocalStorage();
   }, []);
 
   useEffect(() => {
 
 
-    const updateLocalStorage = (leftList: ListItem[], rightList: ListItem[]) => {
-      localStorage.setItem('leftList', JSON.stringify(
+    const updateLocalStorage = (leftList: Question[]) => {
+      localStorage.setItem('questions', JSON.stringify(
         leftList,
       ))
-      localStorage.setItem('rightList', JSON.stringify(
-        rightList,
-      ))
+      
     }
 
-
     try {
-      updateLocalStorage(reduxState.leftList, reduxState.rightList)
+      updateLocalStorage(state.questions)
     } catch (error) {
       console.log(error)
     }
-  }, [reduxState.leftList, reduxState.rightList])
+  }, [state.questions])
 
-  return (<div className="App">
-    <h2>Search</h2>
-    <section>
-      <input className='input-field' style={{ width: '100%' }} type='text' value={reduxState.searchNameInput} onChange={handleSearchInput}></input>
-    </section>
-    <h2>Add name</h2>
-    <section className='new-name-container'>
-      <input className='input-field' value={reduxState.addNameInput} onChange={handleAddNameInput} type='text'></input>
-      <input type='submit' className='submit-name' value="Add" onClick={() => reduxDispatch(add_name({ name: reduxState.addNameInput }))}></input>
-    </section>
-    <div className='col-container'>
-      <ListBox list={reduxState.searchNameInput.length > 0 ? reduxState.filteredLeftList : reduxState.leftList} select={(index, side, isSelected) =>
-        reduxDispatch(select_item({ index: index, side: side, isSelected: isSelected }))
-      }
-        side={'left'} />
-      <section className='button-section'>
-        <a className='button-forward' style={{
-          borderColor: reduxState.itemIsSelected_left ? 'green' : 'black'
-        }} onClick={() => reduxState.itemIsSelected_left && reduxDispatch(switch_list({ side: 'left' }))}></a>
-        <a className='button-reverse'
-          style={{ borderColor: reduxState.itemIsSelected_right ? 'green' : 'black' }} onClick={() => reduxState.itemIsSelected_right && reduxDispatch(switch_list({ side: 'right' }))}></a>
-      </section>
-      <ListBox list={reduxState.searchNameInput.length > 0 ? reduxState.filteredRightList : reduxState.rightList} select={(index, side, isSelected) =>
-        reduxDispatch(select_item({ index, side, isSelected }))
-      }
-        side={'right'} />
+  return (<div className="App"> 
+
+    {state.showAddQuestionModal ? 
+    <>
+    <h1>Create new question</h1>
+    {state.createQuestionStep +1 <= state.createQuestion.length ? <>
+    <h4>Step {state.createQuestionStep + 1} / {state.createQuestion.length}</h4>
+    <h2>{state.createQuestion[state.createQuestionStep].description}</h2>
+    <div className='row-container'>
+    <p>{state.createQuestion[state.createQuestionStep].value}</p>
+    <input className='input-field' value={state.createQuestionInput} onChange={handleCreateQuestionInput} type='text'></input>
+    <button onClick={() => handleCreateQuestionClick()} className='add-question-button'></button>
+    </div> </>
+    : <> 
+    <h2>create question</h2>
+      <h3>{state.createQuestion[0].description}</h3>
+    </>
+    
+    }
+    </>
+    :
+    <>
+    <div className='row-container'>
+    <h2 >Add Question</h2>
+    <button className='add-button' onClick={() => dispatch(toggle_add_question_modal({toggleValue: !state.showAddQuestionModal}))}>+</button> 
+
     </div>
-    {<button onClick={() => reduxDispatch(delete_item())} style={{ backgroundColor: reduxState.itemIsSelected_right || reduxState.itemIsSelected_left ? '#3498db' : 'grey' }} className='delete-button'>delete</button>}
-
+    <h2>Questions</h2>
+    <QuestionListBox list={state.questions}/>
+    <button style={{backgroundColor: allQuestionAnswered ? 'grey' : '#3498db'}} className='submit-button'>Submit</button>
+    </>
+    }
   </div>
 
   );
