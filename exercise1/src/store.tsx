@@ -1,9 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit';
-import questionReducer from './features/question/questionSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import examReducer from "./features/question/questionSlice";
 
 const store = configureStore({
   reducer: {
-    questions: questionReducer,
+    exams: examReducer,
+
     // Add other reducers here if present in your store
   },
 });

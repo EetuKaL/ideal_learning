@@ -4,44 +4,116 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f2f2f2;      
+  background-color: #f2f2f2;
 }
 
-.button-container{
+.button-container {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: center; 
+  align-items: center;
 }
-.delete-button{
-  margin-top: 50px;
-  padding: 10px 20px;
+/* Define the bounce animation */
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.checked-answer-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 500px;
+  margin-bottom: 50px;
+}
+
+.option-button-container {
+  margin-right: 20px;
+  position: relative; /* Ensure relative positioning for the container */
+  display: inline-block; /* To fit the container to its content */
+}
+
+/* Apply the animation on hover */
+.delete-button {
+  /* Existing styles */
+  border: none;
 
   position: relative;
- 
-  
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  transition-duration: 0.4s;
   cursor: pointer;
-  width: 150px; /* Example width */
-  height: 40px; /* Example height */
-  box-sizing: border-box; /* Keeps the width and height inclusive of padding and borders */
+  background-color: #b90f23;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  height: 20px;
+  width: 20px;
+  transition: transform 0.3s ease-in-out; /* Smooth transition for the animation */
+
+  /* Apply bounce animation on hover */
+  &:hover {
+    animation: bounce 0.5s ease infinite; /* Apply the bounce animation */
+  }
 }
 
-.delete-popup{
+.delete-button::after {
+  content: "x"; /* Adding the plus symbol as content */
   position: absolute;
-  background-color: red;
+
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: rgb(248, 245, 245);
+}
+.empty-container {
+  width: 10%;
+}
+.empty-container-2 {
+}
+/* Apply the animation on hover */
+.edit-button {
+  /* Existing styles */
+  border: none;
+  position: relative;
+  cursor: pointer;
+  background-color: #3498db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  height: 20px;
+  width: 30px;
+  margin-right: 10px;
+  transition: transform 0.3s ease-in-out; /* Smooth transition for the animation */
+
+  /* Apply bounce animation on hover */
+  &:hover {
+    animation: bounce 0.5s ease infinite; /* Apply the bounce animation */
+  }
 }
 
-.input-field{
+.edit-button::after {
+  content: "Edit"; /* Adding the plus symbol as content */
+  position: absolute;
+
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 15px;
+  color: rgb(248, 245, 245);
+}
+
+.del-edit-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-field {
   padding: 10px;
-  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
   font-weight: 800;
   font-size: medium;
   border: 1px solid #ccc;
@@ -53,7 +125,7 @@
   width: 250px;
 }
 
-.option-button{
+.option-button {
   margin-left: 10px;
   margin-bottom: 10px;
   padding: 10px 20px;
@@ -64,13 +136,13 @@
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-
 }
+
 .option-button:hover {
   background-color: green;
 }
 
-.submit-button{
+.submit-button {
   margin-left: 10px;
   margin-top: 10px;
   padding: 10px 20px;
@@ -81,48 +153,185 @@
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-
 }
 .submit-button:hover {
   background-color: green;
 }
-.new-name-container{
+.submit-questions-button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #3498db;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.new-name-container {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.col-container{
+.col-container {
   margin-top: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;  
+  align-items: center;
   border: solid;
   width: 400px;
   height: 50%;
-  overflow: hidden scroll;  
+  overflow: hidden scroll;
   box-shadow: 0px 5px 5px 5px rgba(33, 34, 33, 0.322);
 }
 
-.list-box-container{
+.list-box-container {
   display: flex;
   flex-direction: column;
 }
 
-.row-container{
+.list-box-container-review {
+  margin-top: 50px;
   display: flex;
   flex-direction: row;
 }
 
+.review-delete-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-.add-button {
-  margin: 15px;
+.review-delete-button::after {
+  content: "x"; /* Adding the plus symbol as content */
+  position: absolute;
+
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: rgb(248, 245, 245);
+}
+.option-button-review {
+  position: relative; /* Enable relative positioning */
+  padding-right: 30px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #3498db;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-question-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.back-button-1 {
   background-color: #3498db;
   border: none;
   border-radius: 50px;
-  height: 50px;
-  width: 50px;
+  height: 30px;
+  width: 30px;
+  position: relative;
+  cursor: pointer;
+}
+.back-button-1::after {
+  content: "<"; /* Adding the plus symbol as content */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  color: white;
+}
+
+.back-button-1:hover {
+  background-color: #15669d;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background-color: #3498db;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.modal-content {
+  color: white;
+}
+
+.pop-up-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.close {
+  cursor: pointer;
+  float: right;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.row-container-spaceBetween {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.row-container-spaceBetween-1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  min-width: 500px;
+}
+.back-button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 500px;
+}
+
+.row-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+.review-container {
+  border: solid;
+}
+
+.add-button {
+  background-color: #3498db;
+  border: none;
+  border-radius: 50px;
+  height: 30px;
+  width: 30px;
   position: relative;
   cursor: pointer;
 }
@@ -137,13 +346,59 @@
   color: white;
 }
 
-.add-question-button {
-  margin-left: 10px;
+.back-button {
+  bottom: 10px;
   background-color: #3498db;
   border: none;
   border-radius: 50px;
-  height: 40px;
-  width: 40px;
+  height: 30px;
+  width: 30px;
+  position: relative;
+  cursor: pointer;
+}
+
+.back-button::after {
+  content: "<"; /* Adding the plus symbol as content */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 40px;
+  color: white;
+}
+
+.back-button:hover {
+  background-color: #15669d;
+}
+.add-list-button {
+  margin-left: 10px;
+  margin-top: 10px;
+  background-color: #3498db;
+  border: none;
+  border-radius: 50px;
+  height: 30px;
+  width: 30px;
+  position: relative;
+  cursor: pointer;
+}
+
+.add-list-button::after {
+  content: "+"; /* Adding the plus symbol as content */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 30px;
+  color: white;
+}
+
+.add-question-button {
+  margin-top: 10px;
+  background-color: #3498db;
+  border: none;
+  border-radius: 50px;
+  height: 30px;
+  width: 30px;
   position: relative;
   cursor: pointer;
 }
@@ -163,40 +418,40 @@
   background-color: #15669d;
 }
 
-.list-box{
+.list-box {
   border: solid;
   display: flex;
   flex-direction: column;
-   padding: 20px;
+  padding: 20px;
   margin: 5px;
   height: 50vh;
   width: 500px;
   overflow: hidden scroll;
   box-shadow: 0px 5px 5px 5px rgba(33, 34, 33, 0.322);
 }
-.page-container{
+.page-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;      
+  align-items: center;
 }
 
-.list-item{
+.list-item {
   padding: 20px;
   margin: 5px;
   border: solid;
   border-radius: 20px;
   box-shadow: 0px 2px 2px 2px rgba(33, 34, 33, 0.322);
-  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
   font-weight: 800;
   font-size: medium;
 }
 
-.button-section{
+.button-section {
   display: flex;
   flex-direction: column;
   padding: 20px;
- 
 }
 
 ::-webkit-scrollbar {
