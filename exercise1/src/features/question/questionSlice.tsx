@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 /* import { RootState } from '../types';  */ // Import your RootState type
 import { v4 as uid } from "uuid";
 import {
@@ -9,6 +9,13 @@ import {
   defaultValuesExamState,
 } from "../../types/types";
 import { current } from "@reduxjs/toolkit";
+import { initialState } from "../../data/initialdata";
+
+const delay = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
 
 const clearCreateQuestionState = (exam: Exam) => {
   exam.createQuestion.addOptionsInput = "";
@@ -20,89 +27,35 @@ const clearCreateQuestionState = (exam: Exam) => {
   exam.showAddQuestionModal = false;
 };
 
-const initState: ApplicationState = {
-  create_exam_input_value: "",
-  exams: [
-    {
-      ...defaultValuesExamState,
-      name: "initialQuiz",
-      createQuestion: { ...defaultValuesCreateQuestion, answer_options: [] },
-      examId: uid(),
-      questions: [
-        {
-          id: uid(),
-          question_text: "What is the capital of France?",
-          options: ["London", "Paris", "Berlin", "Rome"],
-          correct_answer: "Paris",
-        },
-        {
-          id: uid(),
-          question_text: "Who painted the Mona Lisa?",
-          options: [
-            "Vincent van Gogh",
-            "Pablo Picasso",
-            "Leonardo da Vinci",
-            "Michelangelo",
-          ],
-          correct_answer: "Leonardo da Vinci",
-        },
-        {
-          id: uid(),
-          question_text: "Which planet is known as the Red Planet?",
-          options: ["Mars", "Venus", "Jupiter", "Mercury"],
-          correct_answer: "Mars",
-        },
-      ],
-    },
-    {
-      ...defaultValuesExamState,
-      name: "initialQuiz-2",
-      createQuestion: { ...defaultValuesCreateQuestion, answer_options: [] },
-      examId: uid(),
-      questions: [
-        {
-          id: uid(),
-          question_text: "What is the capital of Germany?",
-          options: ["London", "Paris", "Berlin", "Rome"],
-          correct_answer: "Berlin",
-        },
-        {
-          id: uid(),
-          question_text: "Who painted the somethhing?",
-          options: [
-            "Vincent van Gogh",
-            "Pablo Picasso",
-            "Leonardo da Vinci",
-            "Michelangelo",
-          ],
-          correct_answer: "Leonardo da Vinci",
-        },
-        {
-          id: uid(),
-          question_text: "Which planet is known as the ?",
-          options: ["Mars", "Venus", "Jupiter", "Mercury"],
-          correct_answer: "Mars",
-        },
-      ],
-    },
-  ],
-};
-
-// Check if local storage has the state data
-const localState: string | null = localStorage.getItem("state");
-let parsedState: ApplicationState | null = null;
-
-if (localState) {
-  try {
-    parsedState = JSON.parse(localState);
-  } catch (error) {
-    console.error("Error parsing local storage data:", error);
-    parsedState = null;
-  }
+interface UsersState {
+  entities: []
+  loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
-// Use the parsed state if it exists; otherwise, use the initial state
-const initialState = parsedState || initState;
+export const fetchState = createAsyncThunk(
+  'exam/fetchState',
+  async () => {
+   
+    // Check if local storage has the state data
+    const localState: string | null = localStorage.getItem("state");
+    let parsedState: ApplicationState
+  /*   await delay(1000) */
+ 
+  
+  if(typeof localState === 'string'){
+      
+        parsedState =  JSON.parse(localState);
+      } else {
+        throw Error('when parsing json, local state was not string')
+      }
+    
+      
+    return parsedState
+  }
+)
+
+
+
 
 export const examSlice = createSlice({
   name: "exam",
@@ -271,7 +224,7 @@ export const examSlice = createSlice({
       });
       exam.questionsChecked = true;
     },
-    reset_state: (state) => initState,
+    reset_state: (state) => initialState,
     initial_state_from_local_storage(
       state,
       action: PayloadAction<{ newState: ApplicationState }>
@@ -294,7 +247,30 @@ export const examSlice = createSlice({
       };
       state.exams.push(newExam);
     },
+    delete_exam(state){
+      const examIndex = state.exams.findIndex(
+        (exam) => exam.examId === state.selectedExam
+      );
+      state.exams.splice(examIndex, 1)
+    state.selectedExam = undefined
+    }
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchState.fulfilled, (state, action) => {
+      console.log('successs')
+      state = action.payload
+      state.isLoading = false
+      console.log(state.isLoading)
+    })
+    builder.addCase(fetchState.pending, (state, action) => {
+      console.log('loading')
+      state.isLoading = true
+    })
+    builder.addCase(fetchState.rejected, (state, action) => {
+      console.log('error')
+      state.isLoading = false
+    })
+  }
 });
 
 export const {
@@ -315,6 +291,7 @@ export const {
   select_exam,
   handle_create_exam_input,
   create_exam,
+  delete_exam,
 } = examSlice.actions;
 
 export default examSlice.reducer;

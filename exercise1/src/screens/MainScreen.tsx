@@ -9,8 +9,11 @@ const MainScreen: React.FC = () => {
   const dispatch = useDispatch();
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
+  console.log('state is: ' , state.isLoading)
   return (
     <div>
+      {state.isLoading ? <p>Loading...</p>
+      : <>
       <div className="row-container">
         <h2>Create exam</h2>
         <CreateExamPopUp />
@@ -31,6 +34,8 @@ const MainScreen: React.FC = () => {
           </div>
         );
       })}
+      </>
+      }
     </div>
   );
 };

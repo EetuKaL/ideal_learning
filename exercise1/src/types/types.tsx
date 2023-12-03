@@ -62,6 +62,7 @@ export type Exam = {
 };
 
 export type ApplicationState = {
+  isLoading: boolean;
   create_exam_input_value: string;
   selectedExam?: string;
   exams: Exam[];

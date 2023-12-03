@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import {
   check_answers,
+  delete_exam,
   delete_question,
   select_option,
   start_editing,
@@ -117,9 +118,6 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
         </section>
       </div>
       <div className="row-container-spaceBetween-1">
-        <button style={{ backgroundColor: "green" }} className="submit-button">
-          Publish
-        </button>
         <button
           disabled={allQuestionAnswered}
           onClick={() => {
@@ -133,9 +131,17 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
         >
           Check Answers
         </button>
-        <button style={{ backgroundColor: "red" }} className="submit-button">
+        <div className="row-container-spaceBetween"> 
+        <button onClick={() => {
+          dispatch(delete_exam())
+          navigate('/')
+        }} style={{ backgroundColor: "red" }} className="submit-button">
           Delete
         </button>
+          <button style={{ backgroundColor: "green" }} className="submit-button">
+            Publish
+          </button>
+          </div>
       </div>
     </>
   );

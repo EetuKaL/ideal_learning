@@ -10,8 +10,11 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import MainScreen from "./screens/MainScreen";
 import { ApplicationState, Exam } from "./types/types";
+import { fetchState } from "./features/question/questionSlice";
+import { ThunkDispatch } from "@reduxjs/toolkit";
 function App() {
   const dispatch = useDispatch();
+  const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const state = useSelector((state: RootState) => state.exams);
 
   const exam: Exam =
@@ -30,6 +33,14 @@ function App() {
       console.log(error);
     }
   }, [state]);
+
+  useEffect( () => {
+    const fetchData = async () => {
+      await thunkDispatch(fetchState()); 
+      
+    }
+    fetchData()
+  }, [])
 
   return (
     <div className="App">
