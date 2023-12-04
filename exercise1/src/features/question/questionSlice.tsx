@@ -9,7 +9,7 @@ import {
   defaultValuesExamState,
 } from "../../types/types";
 import { current } from "@reduxjs/toolkit";
-import { initialState } from "../../data/initialdata";
+import { initialState as initState } from "../../data/initialdata";
 
 const delay = (ms: number) => {
   return new Promise((resolve) => {
@@ -28,34 +28,41 @@ const clearCreateQuestionState = (exam: Exam) => {
 };
 
 interface UsersState {
-  entities: []
-  loading: 'idle' | 'pending' | 'succeeded' | 'failed'
+  entities: [];
+  loading: "idle" | "pending" | "succeeded" | "failed";
 }
 
-export const fetchState = createAsyncThunk(
-  'exam/fetchState',
-  async () => {
-   
-    // Check if local storage has the state data
-    const localState: string | null = localStorage.getItem("state");
-    let parsedState: ApplicationState
+export const fetchState = createAsyncThunk("exam/fetchState", async () => {
+  // Check if local storage has the state data
+  const localState: string | null = localStorage.getItem("state");
+  let parsedState: ApplicationState;
   /*   await delay(1000) */
- 
-  
-  if(typeof localState === 'string'){
-      
-        parsedState =  JSON.parse(localState);
-      } else {
-        throw Error('when parsing json, local state was not string')
-      }
-    
-      
-    return parsedState
+
+  if (typeof localState === "string") {
+    parsedState = JSON.parse(localState);
+  } else {
+    throw Error("when parsing json, local state was not string");
   }
-)
 
+  return parsedState;
+});
 
+const getFromLocal = () => {
+  // Check if local storage has the state data
+  const localState: string | null = localStorage.getItem("state");
+  let parsedState: ApplicationState;
+  /*   await delay(1000) */
 
+  if (typeof localState === "string") {
+    parsedState = JSON.parse(localState);
+  } else {
+    parsedState = initState;
+  }
+
+  return parsedState;
+};
+
+const initialState = getFromLocal;
 
 export const examSlice = createSlice({
   name: "exam",
@@ -224,7 +231,7 @@ export const examSlice = createSlice({
       });
       exam.questionsChecked = true;
     },
-    reset_state: (state) => initialState,
+    reset_state: (state) => initState,
     initial_state_from_local_storage(
       state,
       action: PayloadAction<{ newState: ApplicationState }>
@@ -247,30 +254,33 @@ export const examSlice = createSlice({
       };
       state.exams.push(newExam);
     },
-    delete_exam(state){
+    delete_exam(state) {
       const examIndex = state.exams.findIndex(
         (exam) => exam.examId === state.selectedExam
       );
-      state.exams.splice(examIndex, 1)
-    state.selectedExam = undefined
-    }
+      state.exams.splice(examIndex, 1);
+      state.selectedExam = undefined;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchState.fulfilled, (state, action) => {
-      console.log('successs')
-      state = action.payload
-      state.isLoading = false
-      console.log(state.isLoading)
-    })
+      console.log("successs");
+      console.log("state: ", current(state));
+      console.log("action payload on: ", action.payload);
+
+      state.exams = action.payload.exams;
+      state.isLoading = false;
+      console.log("state after: ", state);
+    });
     builder.addCase(fetchState.pending, (state, action) => {
-      console.log('loading')
-      state.isLoading = true
-    })
+      console.log("loading");
+      state.isLoading = true;
+    });
     builder.addCase(fetchState.rejected, (state, action) => {
-      console.log('error')
-      state.isLoading = false
-    })
-  }
+      console.log("error");
+      state.isLoading = false;
+    });
+  },
 });
 
 export const {

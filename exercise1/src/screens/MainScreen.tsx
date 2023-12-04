@@ -9,33 +9,35 @@ const MainScreen: React.FC = () => {
   const dispatch = useDispatch();
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
-  console.log('state is: ' , state.isLoading)
+  console.log("is loading:  ", state.isLoading);
   return (
     <div>
-      {state.isLoading ? <p>Loading...</p>
-      : <>
-      <div className="row-container">
-        <h2>Create exam</h2>
-        <CreateExamPopUp />
-      </div>
-      <h1>Next exams are available:</h1>
-      {state.exams.map((exam) => {
-        return (
-          <div className="column-container">
-            <button
-              className="submit-button"
-              onClick={() => {
-                dispatch(select_exam({ selectedExamId: exam.examId }));
-                navigate("exam/");
-              }}
-            >
-              Exam {exam.name}
-            </button>
+      {state.isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <div className="row-container">
+            <h2>Create exam</h2>
+            <CreateExamPopUp />
           </div>
-        );
-      })}
-      </>
-      }
+          <h1>Next exams are available:</h1>
+          {state.exams.map((exam) => {
+            return (
+              <div className="column-container">
+                <button
+                  className="submit-button"
+                  onClick={() => {
+                    dispatch(select_exam({ selectedExamId: exam.examId }));
+                    navigate("exam/");
+                  }}
+                >
+                  Exam {exam.name}
+                </button>
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 };

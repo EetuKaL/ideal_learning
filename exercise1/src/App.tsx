@@ -34,13 +34,12 @@ function App() {
     }
   }, [state]);
 
-  useEffect( () => {
+  useEffect(() => {
     const fetchData = async () => {
-      await thunkDispatch(fetchState()); 
-      
-    }
-    fetchData()
-  }, [])
+      await thunkDispatch(fetchState());
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="App">
