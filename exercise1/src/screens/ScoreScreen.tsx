@@ -7,15 +7,17 @@ import { useNavigate } from "react-router-dom";
 
 interface props {
   exam: Exam;
+  correctAnswerCount?: number
 }
 
-const ScoreScreen: React.FC<props> = ({ exam }) => {
+const ScoreScreen: React.FC<props> = ({ exam, correctAnswerCount
+ }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   return (
     <>
       <h1>
-        Scored {exam.correctAnswersCount} / {exam.questions.length}
+        Scored {correctAnswerCount} / {exam.questions.length}
       </h1>
       <div
         className="checked-answer-container"

@@ -19,17 +19,18 @@ interface props {
 
 const QuestionScreen: React.FC<props> = ({ exam }) => {
   const dispatch = useDispatch();
+  const state = useSelector((state: RootState) => state.exams);
   const {
     answer_options,
     correct_answer,
     question_text,
     createQuestionInput,
     addOptionsInput,
-  } = exam.createQuestion;
+  } = state.createQuestion;
   const isAddButtonEnabled =
     question_text.length > 3 && answer_options.length > 1 && correct_answer;
 
-  const titleText = exam.createQuestion.id
+  const titleText = state.createQuestion.id
     ? "Edit question"
     : "Create new question";
 
@@ -106,7 +107,7 @@ const QuestionScreen: React.FC<props> = ({ exam }) => {
         })}
       </div>
       <button
-        onClick={() => dispatch(add_question({ id: exam.createQuestion.id }))}
+        onClick={() => dispatch(add_question({ id: state.createQuestion.id }))}
         disabled={!isAddButtonEnabled}
         style={{
           marginTop: "100px",
@@ -114,7 +115,7 @@ const QuestionScreen: React.FC<props> = ({ exam }) => {
         }}
         className="submit-button"
       >
-        {exam.createQuestion.id ? "Change" : "Add"}
+        {state.createQuestion.id ? "Change" : "Add"}
       </button>
     </>
   );

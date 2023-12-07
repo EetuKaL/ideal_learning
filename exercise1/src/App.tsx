@@ -17,11 +17,10 @@ function App() {
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const state = useSelector((state: RootState) => state.exams);
 
-  const exam: Exam =
-    state.selectedExam !== undefined
-      ? state.exams.find((exam) => exam.examId === state.selectedExam) ??
-        state.exams[0]
-      : state.exams[0];
+  const exam: Exam | undefined =
+  state.selectedExam !== undefined
+  ? state.exams?.find((exam) => exam.examId === state.selectedExam) ?? state.exams?.[0]
+  : state.exams?.[0]
 
   useEffect(() => {
     const updateLocalStorage = (newState: ApplicationState) => {
@@ -46,6 +45,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<MainScreen />} />
+          {exam != undefined &&  <>
           <Route path="/exam" element={<ExamScreen exam={exam} />} />
           <Route
             path="/exam/edit"
@@ -55,8 +55,10 @@ function App() {
             path="/exam/create"
             element={<NewQuestionScreen exam={exam} />}
           />
-          <Route path="/exam/score" element={<ScoreScreen exam={exam} />} />
-        </Routes>
+          <Route path="/exam/score" element={<ScoreScreen exam={exam} correctAnswerCount={state.correctAnswersCount} />} />
+          </>
+          }
+          </Routes>
       </Router>
     </div>
   );

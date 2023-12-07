@@ -8,14 +8,12 @@ export type Question = {
 };
 
 export type Exam = {
+  created_at: String;
+  published_at?: String;
+  updated_at?: String;
   examId: string;
   name: string;
   questions: Question[];
-  createQuestion: CreateQuestion;
-  allQuestionAnswered: boolean;
-  showAddQuestionModal: boolean;
-  questionsChecked: boolean;
-  correctAnswersCount?: number;
 };
 
 export type CreateQuestion = {

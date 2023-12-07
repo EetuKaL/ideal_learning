@@ -21,9 +21,10 @@ const MainScreen: React.FC = () => {
             <CreateExamPopUp />
           </div>
           <h1>Next exams are available:</h1>
-          {state.exams.map((exam) => {
+          {state.exams?.map((exam) => {
             return (
               <div className="column-container">
+                <div className="row-container">
                 <button
                   className="submit-button"
                   onClick={() => {
@@ -33,6 +34,9 @@ const MainScreen: React.FC = () => {
                 >
                   Exam {exam.name}
                 </button>
+                <div style={{backgroundColor: exam.published_at ? 'green' : 'red'}} className={'status-indicator'}></div>
+                <h4>{exam.published_at ? 'Published' : 'Not Published'}</h4>
+                </div>
               </div>
             );
           })}

@@ -3,12 +3,15 @@ import { v4 as uid } from "uuid";
 
 export const initialState: ApplicationState = {
     create_exam_input_value: "",
+    allQuestionAnswered: false,
+  questionsChecked: false,
+    createQuestion: { ...defaultValuesCreateQuestion, answer_options: [] },
     isLoading: false,
     exams: [
       {
         ...defaultValuesExamState,
+        created_at: new Date(),
         name: "initialQuiz",
-        createQuestion: { ...defaultValuesCreateQuestion, answer_options: [] },
         examId: uid(),
         questions: [
           {
@@ -39,7 +42,7 @@ export const initialState: ApplicationState = {
       {
         ...defaultValuesExamState,
         name: "initialQuiz-2",
-        createQuestion: { ...defaultValuesCreateQuestion, answer_options: [] },
+        created_at: new Date(),
         examId: uid(),
         questions: [
           {

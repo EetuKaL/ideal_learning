@@ -6,11 +6,14 @@ import {
   check_answers,
   delete_exam,
   delete_question,
+  fetchState,
   select_option,
   start_editing,
 } from "../features/question/questionSlice";
 import { useNavigate } from "react-router-dom";
 import { Exam } from "../types/types";
+import { getSelectedExam } from "../utils/getSelectedExam";
+import { ThunkDispatch } from "@reduxjs/toolkit";
 
 type ExamScreenProps = {
   exam: Exam;
@@ -20,10 +23,52 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
   const dispatch = useDispatch();
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
-
+  const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  
   const allQuestionAnswered =
     exam != undefined &&
     exam.questions.some((question) => !question.selected_answer);
+
+  const handlePublish = async () => {
+    console.log('dsasadasdas')
+    const data = getSelectedExam(state);
+    console.log(data)
+  const response = await fetch('http://localhost:3001/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'name': 'mikko',
+      'password': '12345'
+    },
+    body: JSON.stringify(data)
+  })
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  } else {
+    await thunkDispatch(fetchState());
+  }
+
+  }
+
+  const handleDelete = async () => {
+  const response = await fetch('http://localhost:3001/delete', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'name': 'mikko',
+      'password': '12345'
+    },
+    body: JSON.stringify({id : state.selectedExam})
+  })
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  } else {
+    await thunkDispatch(fetchState());
+    dispatch(delete_exam())
+    navigate('/')
+  }
+
+  }
 
   return (
     <>
@@ -133,12 +178,14 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
         </button>
         <div className="row-container-spaceBetween"> 
         <button onClick={() => {
-          dispatch(delete_exam())
-          navigate('/')
+          handleDelete();
         }} style={{ backgroundColor: "red" }} className="submit-button">
           Delete
         </button>
-          <button style={{ backgroundColor: "green" }} className="submit-button">
+          <button onClick={async () => {
+            await handlePublish()
+            navigate('/')
+            }} style={{ backgroundColor: "green" }} className="submit-button">
             Publish
           </button>
           </div>
