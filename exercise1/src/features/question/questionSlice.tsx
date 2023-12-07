@@ -9,6 +9,7 @@ import {
 } from "../../types/types";
 import { current } from "@reduxjs/toolkit";
 import { initialState as initState } from "../../data/initialdata";
+import { useNavigate } from "react-router-dom";
 
 const delay = (ms: number) => {
   return new Promise((resolve) => {
@@ -16,7 +17,7 @@ const delay = (ms: number) => {
   });
 };
 
-const clearCreateQuestionState = (state:ApplicationState) => {
+const clearCreateQuestionState = (state: ApplicationState) => {
   state.createQuestion.addOptionsInput = "";
   state.createQuestion.createQuestionInput = "";
   state.createQuestion.correct_answer = "";
@@ -31,20 +32,52 @@ interface UsersState {
 }
 
 export const fetchState = createAsyncThunk("exam/fetchState", async () => {
-  // Check if local storage has the state data
-  const localState: string | null = localStorage.getItem("state");
-  let result
+  let result;
   try {
-    const response = await fetch('http://localhost:3001/');
-    result = await response.json(); 
+    const response = await fetch("http://localhost:3001/", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    result = await response.json();
   } catch (error) {
-    console.error('Fetch data error:', error);
+    console.error("Fetch data error:", error);
     throw new Error("Something went wrong with data fetch");
-    
   }
 
   return result.body.exams;
 });
+
+interface LoginPayload {
+  name: string;
+  password: string;
+}
+
+interface LoginResponse {
+  token: string; // Adjust the type according to the actual response structure
+  // Other properties from your response if any
+}
+
+export const login = createAsyncThunk(
+  "exam/login",
+  async (payload: LoginPayload) => {
+    let result;
+    const response = await fetch("http://localhost:3001/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: payload.name, password: payload.password }),
+    });
+    if (!response.ok) {
+      throw new Error("Login response was not ok");
+    }
+    const responseData: LoginResponse = await response.json();
+
+    return responseData;
+  }
+);
 
 const getFromLocal = () => {
   // Check if local storage has the state data
@@ -152,28 +185,33 @@ export const examSlice = createSlice({
       );
       const exam = state.exams![examIndex];
       if (action.payload.id) {
-        console.log('id in payload')
+        console.log("id in payload");
         const index = exam.questions.findIndex(
           (item) => item.id === action.payload.id
-          );
-          
-          exam.questions[index] = {
-            ...exam.questions[index],
-            question_text: state.createQuestion.question_text,
-            options: state.createQuestion.answer_options,
-            correct_answer: state.createQuestion.correct_answer,
-          };
-          clearCreateQuestionState(state);
-        } else {
-        console.log('id was not in payload')
+        );
+
+        exam.questions[index] = {
+          ...exam.questions[index],
+          question_text: state.createQuestion.question_text,
+          options: state.createQuestion.answer_options,
+          correct_answer: state.createQuestion.correct_answer,
+        };
+        clearCreateQuestionState(state);
+      } else {
+        console.log("id was not in payload");
         const newQuestion: Question = {
           id: uid(),
           question_text: state.createQuestion.question_text,
           options: state.createQuestion.answer_options,
           correct_answer: state.createQuestion.correct_answer,
         };
-        console.log('pushing to exam', exam.examId, ' and the name is: ' , exam.name);
-        
+        console.log(
+          "pushing to exam",
+          exam.examId,
+          " and the name is: ",
+          exam.name
+        );
+
         exam.questions.push(newQuestion);
       }
       clearCreateQuestionState(state);
@@ -255,7 +293,7 @@ export const examSlice = createSlice({
         questions: [],
       };
       state.exams!.push(newExam);
-      state.create_exam_input_value = ""
+      state.create_exam_input_value = "";
     },
     delete_exam(state) {
       const examIndex = state.exams!.findIndex(
@@ -264,12 +302,24 @@ export const examSlice = createSlice({
       state.exams!.splice(examIndex, 1);
       state.selectedExam = undefined;
     },
+    handle_login_input(state, action: PayloadAction<{ input: string }>) {
+      state.loginInput = action.payload.input;
+    },
+    handle_password_input(state, action: PayloadAction<{ input: string }>) {
+      state.passwordInput = action.payload.input;
+    },
+    set_isLoggedIn(state, action: PayloadAction<{ isLoggedIn: boolean }>) {
+      state.loggedIn = action.payload.isLoggedIn;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchState.fulfilled, (state, action) => {
-      const examsToAdd = state.exams?.filter((localExam: Exam) => (
-        !action.payload?.some((fetchedExam: Exam) => localExam.examId === fetchedExam.examId)
-      ));
+      const examsToAdd = state.exams?.filter(
+        (localExam: Exam) =>
+          !action.payload?.some(
+            (fetchedExam: Exam) => localExam.examId === fetchedExam.examId
+          )
+      );
       state.exams = examsToAdd?.concat(action.payload);
       state.isLoading = false;
     });
@@ -277,6 +327,17 @@ export const examSlice = createSlice({
       state.isLoading = true;
     });
     builder.addCase(fetchState.rejected, (state, action) => {
+      state.isLoading = false;
+    });
+    builder.addCase(login.fulfilled, (state, action) => {
+      if (action.payload && action.payload.token) {
+        localStorage.setItem("token", action.payload.token);
+      }
+    });
+    builder.addCase(login.pending, (state, action) => {
+      state.isLoading = true;
+    });
+    builder.addCase(login.rejected, (state, action) => {
       state.isLoading = false;
     });
   },
@@ -301,6 +362,9 @@ export const {
   handle_create_exam_input,
   create_exam,
   delete_exam,
+  handle_login_input,
+  handle_password_input,
+  set_isLoggedIn,
 } = examSlice.actions;
 
 export default examSlice.reducer;

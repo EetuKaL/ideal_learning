@@ -7,11 +7,10 @@ import { useNavigate } from "react-router-dom";
 
 interface props {
   exam: Exam;
-  correctAnswerCount?: number
+  correctAnswerCount?: number;
 }
 
-const ScoreScreen: React.FC<props> = ({ exam, correctAnswerCount
- }) => {
+const ScoreScreen: React.FC<props> = ({ exam, correctAnswerCount }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   return (
@@ -58,7 +57,7 @@ const ScoreScreen: React.FC<props> = ({ exam, correctAnswerCount
       <button
         onClick={() => {
           dispatch(reset_state());
-          navigate("/");
+          navigate("/main");
         }}
         className="submit-button"
       >

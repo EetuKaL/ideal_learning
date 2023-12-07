@@ -1,4 +1,3 @@
-
 export type Question = {
   id: string;
   question_text: string;
@@ -26,6 +25,9 @@ export type ApplicationState = {
   create_exam_input_value: string;
   selectedExam?: string;
   exams?: Exam[];
+  loginInput?: string;
+  passwordInput?: string;
+  loggedIn: boolean;
 };
 
 export type CreateQuestion = {

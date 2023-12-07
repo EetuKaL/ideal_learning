@@ -245,6 +245,48 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-input {
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
+
+.login-button {
+  color: #101111;
+  padding: 10px 20px;
+  border-radius: 4px;
+  background-color: #fff;
+  border: none;
+  cursor: pointer;
+  width: 50%;
+}
+
+.register-button {
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 4px;
+  background-color: #3498db;
+  text-decoration: underline;
+  border: none;
+  cursor: "pointer";
+  width: 50%;
+}
+
+.login-form {
+  background-color: #3498db;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
 .add-question-container {
   display: flex;

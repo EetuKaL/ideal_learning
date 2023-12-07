@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const uuid_1 = require("uuid");
 const app = (0, express_1.default)();
 const port = 3001;
 /* const quizState = require("../quizState.json"); */
@@ -22,16 +23,18 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const util_1 = require("util");
 app.use(express_1.default.json());
 const cors_1 = __importDefault(require("cors"));
+const genrateToken_1 = require("./genrateToken");
+const middleware_1 = __importDefault(require("./middleware"));
 // Enable All CORS Requests
 app.use((0, cors_1.default)());
-app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/", middleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let response;
     try {
         let data = yield getData();
         response = { statusCode: 200, body: yield JSON.parse(data) };
     }
     catch (error) {
-        response = { statusCode: 500, message: 'Internal server error:' };
+        response = { statusCode: 500, message: "Internal server error:" };
     }
     finally {
         res.json(response);
@@ -57,19 +60,25 @@ app.put("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (req.headers.hasOwnProperty("name") &&
         req.headers.hasOwnProperty("password")) {
         try {
-            let exam = req["body"];
-            exam["published_at"] = new Date().toString();
             const data = JSON.parse(yield getData());
-            const dataToSave = Object.assign(Object.assign({}, data), { "exams": data["exams"].concat(exam) });
-            saveData(JSON.stringify(dataToSave), res);
+            const password = req["headers"]["password"];
+            const name = req["headers"]["name"];
+            if (yield checkAuthentication(name, password)) {
+                let exam = req["body"];
+                exam["published_at"] = new Date().toString();
+                const dataToSave = Object.assign(Object.assign({}, data), { exams: data["exams"].concat(exam) });
+                saveData(JSON.stringify(dataToSave), res);
+            }
+            else {
+                res.status(400).send("wrong username or password");
+            }
         }
         catch (error) {
             console.log(error);
         }
-        /* bcrypt.compare(authPassword, data["password"]) */
     }
     else {
-        res.status(400).send("name or password is missing");
+        res.status(400).send("name or password is missing in headers");
     }
 }));
 app.put("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -86,21 +95,24 @@ app.put("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 console.log(error);
             }
         }
-        /* bcrypt.compare(authPassword, data["password"]) */
     }
     else {
         res.status(400).send("name or password is missing");
     }
 }));
-app.put("/createAccount", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (req.headers.hasOwnProperty("name") && req.headers.hasOwnProperty("password")) {
+app.post("/createAccount", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    if (req.headers.hasOwnProperty("name") &&
+        req.headers.hasOwnProperty("password")) {
         try {
             const authName = req.headers["name"];
-            const authPassword = req.headers["password"];
+            const authPassword = (_a = req.headers["password"]) === null || _a === void 0 ? void 0 : _a.toString();
             const data = JSON.parse(yield getData());
+            const hashedPassword = yield hashPassword(authPassword);
             let newData = Object.assign(Object.assign({}, data), { account: {
+                    id: (0, uuid_1.v4)(),
                     name: authName,
-                    password: yield hashPassword(authPassword)
+                    password: hashedPassword,
                 } });
             saveData(JSON.stringify(newData), res);
         }
@@ -113,12 +125,30 @@ app.put("/createAccount", (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(400).send("Name or password header is missing");
     }
 }));
+app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, password } = req.body;
+    console.log(req);
+    const data = JSON.parse(yield getData());
+    if (typeof password !== "string") {
+        throw new Error("Password not a string");
+    }
+    if (data["account"]["name"] === name &&
+        (yield bcrypt_1.default.compare(password, data["account"]["password"]))) {
+        // If authentication is successful, generate a JWT token
+        const token = (0, genrateToken_1.genrateToken)(data["account"]["id"]);
+        // Send the token in the response
+        res.status(200).json({ token });
+    }
+    else {
+        res.status(400).send("wrong username or password");
+    }
+}));
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
 const getData = () => __awaiter(void 0, void 0, void 0, function* () {
     const readFileAsync = (0, util_1.promisify)(fs.readFile);
-    const data = yield readFileAsync('./quizState.json', 'utf8');
+    const data = yield readFileAsync("./quizState.json", "utf8");
     return data;
 });
 const saveData = (data, res) => {
@@ -137,6 +167,19 @@ const hashPassword = (plaintextPassword) => __awaiter(void 0, void 0, void 0, fu
     }
     catch (error) {
         // Handle error
-        throw new Error('Password hashing failed');
+        throw new Error("Password hashing failed");
+    }
+});
+const checkAuthentication = (username, password) => __awaiter(void 0, void 0, void 0, function* () {
+    const data = JSON.parse(yield getData());
+    if (typeof password !== "string") {
+        throw new Error("Password not a string");
+    }
+    if (data["account"]["name"] === name &&
+        (yield bcrypt_1.default.compare(password, data["account"]["password"]))) {
+        return true;
+    }
+    else {
+        return false;
     }
 });

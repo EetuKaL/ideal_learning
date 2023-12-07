@@ -24,51 +24,49 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  
+
   const allQuestionAnswered =
     exam != undefined &&
     exam.questions.some((question) => !question.selected_answer);
 
   const handlePublish = async () => {
-    console.log('dsasadasdas')
+    console.log("dsasadasdas");
     const data = getSelectedExam(state);
-    console.log(data)
-  const response = await fetch('http://localhost:3001/', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'name': 'mikko',
-      'password': '12345'
-    },
-    body: JSON.stringify(data)
-  })
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  } else {
-    await thunkDispatch(fetchState());
-  }
-
-  }
+    console.log(data);
+    const response = await fetch("http://localhost:3001/", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        name: "mikko",
+        password: "12345",
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    } else {
+      await thunkDispatch(fetchState());
+    }
+  };
 
   const handleDelete = async () => {
-  const response = await fetch('http://localhost:3001/delete', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'name': 'mikko',
-      'password': '12345'
-    },
-    body: JSON.stringify({id : state.selectedExam})
-  })
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  } else {
-    await thunkDispatch(fetchState());
-    dispatch(delete_exam())
-    navigate('/')
-  }
-
-  }
+    const response = await fetch("http://localhost:3001/delete", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        name: "mikko",
+        password: "12345",
+      },
+      body: JSON.stringify({ id: state.selectedExam }),
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    } else {
+      await thunkDispatch(fetchState());
+      dispatch(delete_exam());
+      navigate("/main");
+    }
+  };
 
   return (
     <>
@@ -78,7 +76,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
           <button
             className="back-button-1"
             onClick={() => {
-              navigate("/");
+              navigate("/main");
             }}
           />
           <h4 style={{ margin: "0px" }}>Exams</h4>
@@ -176,19 +174,27 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
         >
           Check Answers
         </button>
-        <div className="row-container-spaceBetween"> 
-        <button onClick={() => {
-          handleDelete();
-        }} style={{ backgroundColor: "red" }} className="submit-button">
-          Delete
-        </button>
-          <button onClick={async () => {
-            await handlePublish()
-            navigate('/')
-            }} style={{ backgroundColor: "green" }} className="submit-button">
+        <div className="row-container-spaceBetween">
+          <button
+            onClick={() => {
+              handleDelete();
+            }}
+            style={{ backgroundColor: "red" }}
+            className="submit-button"
+          >
+            Delete
+          </button>
+          <button
+            onClick={async () => {
+              await handlePublish();
+              navigate("/main");
+            }}
+            style={{ backgroundColor: "green" }}
+            className="submit-button"
+          >
             Publish
           </button>
-          </div>
+        </div>
       </div>
     </>
   );
