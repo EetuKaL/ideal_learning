@@ -1,21 +1,44 @@
 import express, { Express, Request, Response, response } from "express";
 import { Exam } from "./types/types";
 import { v4 as uid } from "uuid";
-const app = express();
-const port = 3001;
 /* const quizState = require("../quizState.json"); */
 const fs = require("fs");
 const { writeFile } = require("fs");
 import bcrypt from "bcrypt";
 import { promisify } from "util";
-app.use(express.json());
 import cors from "cors";
 import { genrateToken } from "./genrateToken";
 import isLogin from "./middleware";
-// Enable All CORS Requests
-app.use(cors());
+import https from 'https'
+import { Client } from 'pg';
 
-app.get("/", isLogin, async (req, res) => {
+
+var privateKey  = fs.readFileSync('./privateKey.key', 'utf8');
+var certificate = fs.readFileSync('./certificate.crt', 'utf8');
+
+var credentials = {key: privateKey, cert: certificate};
+// Enable All CORS Requests
+const app = express();
+const port = 3001;
+app.use(express.json());
+app.use(cors({origin: ''}));
+const client = new Client({
+  host: 'localhost',
+  port: 5433,
+  database: 'postgres',
+  user: 'postgres',
+  password: 'kissa123'
+})
+
+const fn = async () => {
+  await client.connect()
+  const result = await client.query('SELECT * FROM public.users')
+  console.log(result);
+  await client.end()
+}
+fn()
+
+app.get("/", async (req, res) => {
   let response;
   try {
     let data = await getData();
@@ -151,7 +174,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+var httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 

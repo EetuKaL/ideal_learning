@@ -6,7 +6,7 @@ import { RootState } from "./store";
 
 import ScoreScreen from "./screens/ScoreScreen";
 import ExamScreen from "./screens/ExamScreen";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, redirect, Navigate, useNavigate } from "react-router-dom";
 
 import MainScreen from "./screens/MainScreen";
 import { ApplicationState, Exam } from "./types/types";
@@ -17,13 +17,17 @@ function App() {
   const dispatch = useDispatch();
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const state = useSelector((state: RootState) => state.exams);
-
+  const navigate = useNavigate();
   const isLoggedIn = (() => {
     const token = localStorage.getItem("token");
+    console.log('this')
     if (token) {
+
+      
       dispatch(set_isLoggedIn({ isLoggedIn: true }));
     } else {
       dispatch(set_isLoggedIn({ isLoggedIn: false }));
+      
     }
   })();
 
@@ -45,6 +49,12 @@ function App() {
   }, [state]);
 
   useEffect(() => {
+    if(state.loggedIn === false) {
+      navigate('/login')
+    }
+  }, [state.loggedIn])
+
+  useEffect(() => {
     const fetchData = async () => {
       await thunkDispatch(fetchState());
     };
@@ -54,28 +64,29 @@ function App() {
 
   return (
     <div className="App">
-      <Router>
+    
         <Routes>
-          <Route path="/" element={<LoginScreen />} />
-          {state.loggedIn && (
-            <>
-              <Route path="/main" element={<MainScreen />} />
+          <Route path="/login" element={<LoginScreen />} />
+
+          <Route path="/" element={<MainScreen /> }/>
+               
+            
               {exam != undefined && (
                 <>
                   <Route
-                    path="/main/exam"
+                    path="/exam"
                     element={<ExamScreen exam={exam} />}
                   />
                   <Route
-                    path="/main/exam/edit"
+                    path="/exam/edit"
                     element={<NewQuestionScreen exam={exam} />}
                   />
                   <Route
-                    path="/main/exam/create"
+                    path="/exam/create"
                     element={<NewQuestionScreen exam={exam} />}
                   />
                   <Route
-                    path="/main/exam/score"
+                    path="/exam/score"
                     element={
                       <ScoreScreen
                         exam={exam}
@@ -85,10 +96,10 @@ function App() {
                   />
                 </>
               )}
-            </>
-          )}
+          
+          
         </Routes>
-      </Router>
+     
     </div>
   );
 }

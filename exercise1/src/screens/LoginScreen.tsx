@@ -20,8 +20,7 @@ const LoginScreen: React.FC = () => {
     thunkDispatch(
       login({ name: loginInput || "", password: passwordInput || "" })
     );
-    /// Move this somewhere else
-    navigate("/main");
+ 
   }
 
   function handleRegister(): void {

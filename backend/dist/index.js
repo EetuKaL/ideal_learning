@@ -14,20 +14,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const uuid_1 = require("uuid");
-const app = (0, express_1.default)();
-const port = 3001;
 /* const quizState = require("../quizState.json"); */
 const fs = require("fs");
 const { writeFile } = require("fs");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const util_1 = require("util");
-app.use(express_1.default.json());
 const cors_1 = __importDefault(require("cors"));
 const genrateToken_1 = require("./genrateToken");
-const middleware_1 = __importDefault(require("./middleware"));
+const https_1 = __importDefault(require("https"));
+const pg_1 = require("pg");
+var privateKey = fs.readFileSync('./privateKey.key', 'utf8');
+var certificate = fs.readFileSync('./certificate.crt', 'utf8');
+var credentials = { key: privateKey, cert: certificate };
 // Enable All CORS Requests
-app.use((0, cors_1.default)());
-app.get("/", middleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const app = (0, express_1.default)();
+const port = 3001;
+app.use(express_1.default.json());
+app.use((0, cors_1.default)({ origin: '' }));
+const client = new pg_1.Client({
+    host: 'localhost',
+    port: 5433,
+    database: 'postgres',
+    user: 'postgres',
+    password: 'kissa123'
+});
+const fn = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield client.connect();
+    const result = yield client.query('SELECT * FROM public.users');
+    console.log(result);
+    yield client.end();
+});
+fn();
+app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let response;
     try {
         let data = yield getData();
@@ -143,7 +161,8 @@ app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(400).send("wrong username or password");
     }
 }));
-app.listen(port, () => {
+var httpsServer = https_1.default.createServer(credentials, app);
+httpsServer.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
 const getData = () => __awaiter(void 0, void 0, void 0, function* () {

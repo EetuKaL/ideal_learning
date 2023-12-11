@@ -33,7 +33,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
     console.log("dsasadasdas");
     const data = getSelectedExam(state);
     console.log(data);
-    const response = await fetch("http://localhost:3001/", {
+    const response = await fetch("https://localhost:3001/", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +50,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
   };
 
   const handleDelete = async () => {
-    const response = await fetch("http://localhost:3001/delete", {
+    const response = await fetch("https://localhost:3001/delete", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
