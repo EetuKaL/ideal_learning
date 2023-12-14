@@ -9,7 +9,7 @@ const MainScreen: React.FC = () => {
   const dispatch = useDispatch();
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
-  console.log("is loading:  ", state.isLoading);
+
   return (
     <div>
       {state.isLoading ? (
@@ -21,21 +21,30 @@ const MainScreen: React.FC = () => {
             <CreateExamPopUp />
           </div>
           <h1>Next exams are available:</h1>
-          {state.exams?.map((exam) => {
+          {state.exams?.map((exam, index) => {
             return (
-              <div className="column-container">
-                <div className="row-container">
-                <button
-                  className="submit-button"
-                  onClick={() => {
-                    dispatch(select_exam({ selectedExamId: exam.examId }));
-                    navigate("exam/");
-                  }}
-                >
-                  Exam {exam.name}
-                </button>
-                <div style={{backgroundColor: exam.published_at ? 'green' : 'red'}} className={'status-indicator'}></div>
-                <h4>{exam.published_at ? 'Published' : 'Not Published'}</h4>
+              <div key={"column-" + index} className="column-container">
+                <div key={"row-" + index} className="row-container">
+                  <button
+                    key={"exam-button" + index}
+                    className="submit-button"
+                    onClick={() => {
+                      dispatch(select_exam({ selectedExamId: exam.examId }));
+                      navigate("exam/");
+                    }}
+                  >
+                    {exam.name}
+                  </button>
+                  <div
+                    key={"color-indicator-" + index}
+                    style={{
+                      backgroundColor: exam.published_at ? "green" : "red",
+                    }}
+                    className={"status-indicator"}
+                  ></div>
+                  <h4 key={"status-indicator-text" + index}>
+                    {exam.published_at ? "Published" : "Not Published"}
+                  </h4>
                 </div>
               </div>
             );

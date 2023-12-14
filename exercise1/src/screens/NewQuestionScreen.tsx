@@ -89,14 +89,16 @@ const QuestionScreen: React.FC<props> = ({ exam }) => {
               <button
                 style={{
                   backgroundColor:
-                    correct_answer === answer ? "green" : "#3498db",
+                    correct_answer === answer.answerOptionText
+                      ? "green"
+                      : "#3498db",
                 }}
                 onClick={() =>
                   dispatch(select_correct_option({ index: index }))
                 }
                 className="option-button-review"
               >
-                {answer}
+                {answer.answerOptionText}
               </button>
               <button
                 className="review-delete-button"

@@ -1,14 +1,19 @@
 export type Question = {
   id: string;
   question_text: string;
-  options: string[];
+  options: AnswerOption[];
   correct_answer: string;
   selected_answer?: string;
   answer_correct?: boolean;
 };
 
+export type AnswerOption = {
+  answerOptionId?: string;
+  answerOptionText: string;
+};
+
 export type Exam = {
-  created_at: Date;
+  created_at: Date | String;
   published_at?: Date;
   updated_at?: Date;
   examId: string;
@@ -33,7 +38,7 @@ export type ApplicationState = {
 export type CreateQuestion = {
   id?: string;
   question_text: string;
-  answer_options: string[];
+  answer_options: AnswerOption[];
   correct_answer: string;
   createQuestionInput: string;
   addOptionsInput: string;

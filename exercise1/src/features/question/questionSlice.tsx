@@ -10,6 +10,7 @@ import {
 import { current } from "@reduxjs/toolkit";
 import { initialState as initState } from "../../data/initialdata";
 import { useNavigate } from "react-router-dom";
+import { getCurrentDate } from "../../utils/formatDate";
 
 const delay = (ms: number) => {
   return new Promise((resolve) => {
@@ -26,11 +27,6 @@ const clearCreateQuestionState = (state: ApplicationState) => {
   state.createQuestion.id = undefined;
 };
 
-interface UsersState {
-  entities: [];
-  loading: "idle" | "pending" | "succeeded" | "failed";
-}
-
 export const fetchState = createAsyncThunk("exam/fetchState", async () => {
   let result;
   try {
@@ -41,12 +37,12 @@ export const fetchState = createAsyncThunk("exam/fetchState", async () => {
       },
     });
     result = await response.json();
+    console.log(result);
   } catch (error) {
     console.error("Fetch data error:", error);
     throw new Error("Something went wrong with data fetch");
   }
-
-  return result.body.exams;
+  return result.body;
 });
 
 interface LoginPayload {
@@ -132,9 +128,9 @@ export const examSlice = createSlice({
         (exam) => exam.examId === state.selectedExam
       );
       const exam = state.exams![examIndex];
-      const updatedOptions = state.createQuestion.answer_options.concat(
-        state.createQuestion.addOptionsInput
-      );
+      const updatedOptions = state.createQuestion.answer_options.concat({
+        answerOptionText: state.createQuestion.addOptionsInput,
+      });
       state.createQuestion.answer_options = updatedOptions;
       state.createQuestion.addOptionsInput = "";
     },
@@ -155,7 +151,9 @@ export const examSlice = createSlice({
       );
       const exam = state.exams![examIndex];
       state.createQuestion.correct_answer =
-        state.createQuestion.answer_options[action.payload.index];
+        state.createQuestion.answer_options[
+          action.payload.index
+        ].answerOptionText;
     },
     handle_create_question_input: (
       state,
@@ -193,7 +191,12 @@ export const examSlice = createSlice({
         exam.questions[index] = {
           ...exam.questions[index],
           question_text: state.createQuestion.question_text,
-          options: state.createQuestion.answer_options,
+          options: state.createQuestion.answer_options.map((i) => {
+            return {
+              answerOptionId: i.answerOptionId,
+              answerOptionText: i.answerOptionText,
+            };
+          }),
           correct_answer: state.createQuestion.correct_answer,
         };
         clearCreateQuestionState(state);
@@ -202,7 +205,9 @@ export const examSlice = createSlice({
         const newQuestion: Question = {
           id: uid(),
           question_text: state.createQuestion.question_text,
-          options: state.createQuestion.answer_options,
+          options: state.createQuestion.answer_options.map((i) => {
+            return { answerOptionText: i.answerOptionText };
+          }),
           correct_answer: state.createQuestion.correct_answer,
         };
         console.log(
@@ -287,7 +292,7 @@ export const examSlice = createSlice({
     },
     create_exam(state) {
       const newExam: Exam = {
-        created_at: new Date(),
+        created_at: new Date(getCurrentDate()),
         name: state.create_exam_input_value,
         examId: uid(),
         questions: [],

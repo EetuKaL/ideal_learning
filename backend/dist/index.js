@@ -22,34 +22,24 @@ const util_1 = require("util");
 const cors_1 = __importDefault(require("cors"));
 const genrateToken_1 = require("./genrateToken");
 const https_1 = __importDefault(require("https"));
-const pg_1 = require("pg");
-var privateKey = fs.readFileSync('./privateKey.key', 'utf8');
-var certificate = fs.readFileSync('./certificate.crt', 'utf8');
+const selectExam_1 = require("./queries/selectExam");
+const insertExam_1 = require("./queries/insertExam");
+const deleteExam_1 = require("./queries/deleteExam");
+var privateKey = fs.readFileSync("./privateKey.key", "utf8");
+var certificate = fs.readFileSync("./certificate.crt", "utf8");
 var credentials = { key: privateKey, cert: certificate };
 // Enable All CORS Requests
 const app = (0, express_1.default)();
 const port = 3001;
 app.use(express_1.default.json());
-app.use((0, cors_1.default)({ origin: '' }));
-const client = new pg_1.Client({
-    host: 'localhost',
-    port: 5433,
-    database: 'postgres',
-    user: 'postgres',
-    password: 'kissa123'
-});
-const fn = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield client.connect();
-    const result = yield client.query('SELECT * FROM public.users');
-    console.log(result);
-    yield client.end();
-});
-fn();
+app.use((0, cors_1.default)());
+/* fetchQuestions(1); */
+/* fetchAnswerOptions(4); */
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let response;
     try {
-        let data = yield getData();
-        response = { statusCode: 200, body: yield JSON.parse(data) };
+        let data = yield (0, selectExam_1.fetchAndBuildExams)();
+        response = { statusCode: 200, body: data };
     }
     catch (error) {
         response = { statusCode: 500, message: "Internal server error:" };
@@ -74,48 +64,31 @@ app.post("/initialData", (req, res) => __awaiter(void 0, void 0, void 0, functio
         });
     }
 }));
-app.put("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (req.headers.hasOwnProperty("name") &&
-        req.headers.hasOwnProperty("password")) {
-        try {
-            const data = JSON.parse(yield getData());
-            const password = req["headers"]["password"];
-            const name = req["headers"]["name"];
-            if (yield checkAuthentication(name, password)) {
-                let exam = req["body"];
-                exam["published_at"] = new Date().toString();
-                const dataToSave = Object.assign(Object.assign({}, data), { exams: data["exams"].concat(exam) });
-                saveData(JSON.stringify(dataToSave), res);
-            }
-            else {
-                res.status(400).send("wrong username or password");
-            }
-        }
-        catch (error) {
-            console.log(error);
-        }
+app.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let exam = req["body"];
+        yield (0, insertExam_1.postNewExam)(exam);
+        res
+            .status(200)
+            .send({ statusCode: 200, message: "succesfully posted exam" });
     }
-    else {
-        res.status(400).send("name or password is missing in headers");
+    catch (error) {
+        res.status(500).send({ statusCode: 500, message: "failed to post exam" });
+        console.log(error);
     }
 }));
-app.put("/delete", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (req.headers.hasOwnProperty("name") &&
-        req.headers.hasOwnProperty("password")) {
-        if (req.body.hasOwnProperty("id")) {
-            try {
-                const id = req["body"]["id"];
-                const data = JSON.parse(yield getData());
-                const newData = Object.assign(Object.assign({}, data), { exams: data.exams.filter((exam) => exam.examId !== id) });
-                saveData(JSON.stringify(newData), res);
-            }
-            catch (error) {
-                console.log(error);
-            }
+app.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const examID = req.params.id;
+    try {
+        if (examID) {
+            (0, deleteExam_1.deleteExam)(parseInt(examID));
+            res.status(200).json({ message: "Exam deleted successfully" });
         }
     }
-    else {
-        res.status(400).send("name or password is missing");
+    catch (error) {
+        res
+            .status(500)
+            .json({ error: "An error occurred while deleting the exam" });
     }
 }));
 app.post("/createAccount", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

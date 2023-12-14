@@ -9,40 +9,34 @@ import { promisify } from "util";
 import cors from "cors";
 import { genrateToken } from "./genrateToken";
 import isLogin from "./middleware";
-import https from 'https'
-import { Client } from 'pg';
+import https from "https";
+import {
+  fetchAndBuildExams,
+  fetchAnswerOptions,
+  fetchExams,
+  fetchQuestions,
+} from "./queries/selectExam";
+import { postNewExam } from "./queries/insertExam";
+import { deleteExam } from "./queries/deleteExam";
 
+var privateKey = fs.readFileSync("./privateKey.key", "utf8");
+var certificate = fs.readFileSync("./certificate.crt", "utf8");
 
-var privateKey  = fs.readFileSync('./privateKey.key', 'utf8');
-var certificate = fs.readFileSync('./certificate.crt', 'utf8');
-
-var credentials = {key: privateKey, cert: certificate};
+var credentials = { key: privateKey, cert: certificate };
 // Enable All CORS Requests
 const app = express();
 const port = 3001;
 app.use(express.json());
-app.use(cors({origin: ''}));
-const client = new Client({
-  host: 'localhost',
-  port: 5433,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'kissa123'
-})
+app.use(cors());
 
-const fn = async () => {
-  await client.connect()
-  const result = await client.query('SELECT * FROM public.users')
-  console.log(result);
-  await client.end()
-}
-fn()
+/* fetchQuestions(1); */
+/* fetchAnswerOptions(4); */
 
 app.get("/", async (req, res) => {
   let response;
   try {
-    let data = await getData();
-    response = { statusCode: 200, body: await JSON.parse(data) };
+    let data = await fetchAndBuildExams();
+    response = { statusCode: 200, body: data };
   } catch (error) {
     response = { statusCode: 500, message: "Internal server error:" };
   } finally {
@@ -66,60 +60,30 @@ app.post("/initialData", async (req, res) => {
   }
 });
 
-app.put("/", async (req, res) => {
-  if (
-    req.headers.hasOwnProperty("name") &&
-    req.headers.hasOwnProperty("password")
-  ) {
-    try {
-      const data = JSON.parse(await getData());
-
-      const password = req["headers"]["password"];
-      const name = req["headers"]["name"];
-
-      if (await checkAuthentication(name, password)) {
-        let exam: Exam = req["body"];
-
-        exam["published_at"] = new Date().toString();
-
-        const dataToSave = {
-          ...data,
-          exams: data["exams"].concat(exam),
-        };
-
-        saveData(JSON.stringify(dataToSave), res);
-      } else {
-        res.status(400).send("wrong username or password");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  } else {
-    res.status(400).send("name or password is missing in headers");
+app.post("/", async (req, res) => {
+  try {
+    let exam: Exam = req["body"];
+    await postNewExam(exam);
+    res
+      .status(200)
+      .send({ statusCode: 200, message: "succesfully posted exam" });
+  } catch (error) {
+    res.status(500).send({ statusCode: 500, message: "failed to post exam" });
+    console.log(error);
   }
 });
-app.put("/delete", async (req, res) => {
-  if (
-    req.headers.hasOwnProperty("name") &&
-    req.headers.hasOwnProperty("password")
-  ) {
-    if (req.body.hasOwnProperty("id")) {
-      try {
-        const id = req["body"]["id"];
-        const data = JSON.parse(await getData());
 
-        const newData = {
-          ...data,
-          exams: data.exams.filter((exam: Exam) => exam.examId !== id),
-        };
-
-        saveData(JSON.stringify(newData), res);
-      } catch (error) {
-        console.log(error);
-      }
+app.delete("/:id", async (req, res) => {
+  const examID = req.params.id;
+  try {
+    if (examID) {
+      deleteExam(parseInt(examID));
+      res.status(200).json({ message: "Exam deleted successfully" });
     }
-  } else {
-    res.status(400).send("name or password is missing");
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred while deleting the exam" });
   }
 });
 

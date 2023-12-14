@@ -6,6 +6,7 @@ import {
   handle_login_input,
   handle_password_input,
   login,
+  set_isLoggedIn,
 } from "../features/question/questionSlice";
 import { ThunkDispatch } from "@reduxjs/toolkit";
 
@@ -20,7 +21,7 @@ const LoginScreen: React.FC = () => {
     thunkDispatch(
       login({ name: loginInput || "", password: passwordInput || "" })
     );
- 
+    navigate("/");
   }
 
   function handleRegister(): void {

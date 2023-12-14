@@ -24,6 +24,9 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
+  const isPublished = !!exam.published_at;
+
+  console.log("is published Exam: ", isPublished);
 
   const allQuestionAnswered =
     exam != undefined &&
@@ -34,7 +37,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
     const data = getSelectedExam(state);
     console.log(data);
     const response = await fetch("https://localhost:3001/", {
-      method: "PUT",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         name: "mikko",
@@ -45,26 +48,34 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
     if (!response.ok) {
       throw new Error("Network response was not ok");
     } else {
-      await thunkDispatch(fetchState());
+      dispatch(delete_exam());
+      navigate("/");
     }
   };
 
   const handleDelete = async () => {
-    const response = await fetch("https://localhost:3001/delete", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        name: "mikko",
-        password: "12345",
-      },
-      body: JSON.stringify({ id: state.selectedExam }),
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    } else {
-      await thunkDispatch(fetchState());
+    if (!isPublished) {
       dispatch(delete_exam());
-      navigate("/main");
+      navigate("/");
+    } else {
+      const response = await fetch(
+        `https://localhost:3001/${state.selectedExam}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            name: "mikko",
+            password: "12345",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      } else {
+        await thunkDispatch(fetchState());
+        dispatch(delete_exam());
+        navigate("/");
+      }
     }
   };
 
@@ -76,7 +87,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
           <button
             className="back-button-1"
             onClick={() => {
-              navigate("/main");
+              navigate("/");
             }}
           />
           <h4 style={{ margin: "0px" }}>Exams</h4>
@@ -102,17 +113,29 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
             exam.questions.map((question: Question, index: number) => {
               return (
                 <div
-                  key={index}
+                  key={"question-box-" + index}
                   style={{
                     color: "black",
                   }}
                   className="list-item"
                 >
-                  <div className="row-container-spaceBetween">
-                    <p>{question.question_text}</p>
-                    <div className="empty-container" />
-                    <div className="del-edit-container">
+                  <div
+                    key={"row-container-spaceBetween-" + index}
+                    className="row-container-spaceBetween"
+                  >
+                    <p key={"question-text-" + index}>
+                      {question.question_text}
+                    </p>
+                    <div
+                      key={"empty-container-" + index}
+                      className="empty-container"
+                    />
+                    <div
+                      key={"del-edit-container-" + index}
+                      className="del-edit-container"
+                    >
                       <button
+                        key={"edit-button-" + index}
                         onClick={() => {
                           {
                             dispatch(start_editing({ id: question.id }));
@@ -122,6 +145,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
                         className="edit-button"
                       ></button>
                       <button
+                        key={"delete-button-" + index}
                         className="delete-button"
                         onClick={() =>
                           dispatch(delete_question({ index: index }))
@@ -129,12 +153,13 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
                       />
                     </div>
                   </div>
-                  {question.options.map((option: string) => {
+                  {question.options.map((option, index) => {
                     return (
                       <button
+                        key={"answer-option-button-" + index}
                         style={{
                           backgroundColor:
-                            option === question.selected_answer
+                            option.answerOptionText === question.selected_answer
                               ? "#15669d"
                               : "#3498db",
                         }}
@@ -143,12 +168,12 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
                           dispatch(
                             select_option({
                               selectedQuestion: question.id,
-                              selected: option,
+                              selected: option.answerOptionText,
                             })
                           )
                         }
                       >
-                        {option}
+                        {option.answerOptionText}
                       </button>
                     );
                   })}
@@ -187,12 +212,11 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
           <button
             onClick={async () => {
               await handlePublish();
-              navigate("/main");
             }}
             style={{ backgroundColor: "green" }}
             className="submit-button"
           >
-            Publish
+            {isPublished ? "Update" : "Publish"}
           </button>
         </div>
       </div>

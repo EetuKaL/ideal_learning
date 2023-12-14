@@ -1,17 +1,22 @@
 export type Question = {
   id: string;
   question_text: string;
-  options: string[];
+  options: AnswerOption[];
   correct_answer: string;
   selected_answer?: string;
   answer_correct?: boolean;
+};
+
+export type AnswerOption = {
+  answerOptionId?: string;
+  answerOptionText: string;
 };
 
 export type Exam = {
   created_at: String;
   published_at?: String;
   updated_at?: String;
-  examId: string;
+  examId?: string;
   name: string;
   questions: Question[];
 };
