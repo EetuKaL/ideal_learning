@@ -1,4 +1,4 @@
-import { Client } from "pg";
+import { Client, PoolClient } from "pg";
 
 export async function deleteExam(exam_id: number) {
   const client = new Client({
@@ -22,7 +22,45 @@ export async function deleteExam(exam_id: number) {
     console.error(err);
     throw new Error("Deleting from table failed");
   } finally {
+    console.log("Succesfuly Deleted Exam");
     await client.end();
+  }
+}
+
+export async function deleteQuestion(client: PoolClient, question_id: number) {
+  try {
+    const query = {
+      text: `
+      DELETE FROM questions WHERE question_id = $1;
+        `,
+      values: [question_id],
+    };
+    const result = await client.query(query);
+  } catch (err) {
+    console.error(err);
+    throw new Error("Deleting from table failed");
+  } finally {
+    console.log("Succesfuly Deleted Question");
+  }
+}
+
+export async function deleteAnswerOption(
+  client: PoolClient,
+  answer_id: number
+) {
+  try {
+    const query = {
+      text: `
+      DELETE FROM answer_options WHERE answer_id = $1;
+        `,
+      values: [answer_id],
+    };
+    const result = await client.query(query);
+  } catch (err) {
+    console.error(err);
+    throw new Error("Deleting from table failed");
+  } finally {
+    console.log("Succesfuly Deleted Answer Option");
   }
 }
 

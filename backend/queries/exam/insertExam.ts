@@ -1,7 +1,6 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { Exam } from "../types/types";
+import { Exam } from "../../types/types";
 import { deleteExam } from "./deleteExam";
-import { log } from "console";
 
 let generatedExamId: number;
 let generatedQuestionId: number;
@@ -18,7 +17,7 @@ export async function postNewExam(exam: Exam) {
   try {
     const client = await pool.connect();
 
-    ///// TRY TO FIND THE EXAM
+    ///// Check exam existence
     if (Number(exam.examId)) {
       const existenceResult: QueryResult = await client.query({
         text: "SELECT exam_name FROM exams WHERE exam_id = $1",
@@ -26,62 +25,48 @@ export async function postNewExam(exam: Exam) {
       });
 
       const examExists = existenceResult.rows.length > 0;
-
+      //// Delete old exam
       if (examExists && exam.examId) {
         await deleteExam(parseInt(exam.examId));
       }
     }
-    await createExam(client, exam.name, exam.created_at);
-
+    await insertExam(client, exam.name, exam.created_at);
     for (const question of exam.questions) {
-      await createQuestion(client, question.question_text, generatedExamId);
-
+      await insertQuestion(client, question.question_text, generatedExamId);
       for (const option of question.options) {
-        if (option.answerOptionText === question.correct_answer) {
-          await createAnswerOption(
-            client,
-            true,
-            generatedQuestionId,
-            option.answerOptionText
-          );
-        } else {
-          await createAnswerOption(
-            client,
-            false,
-            generatedQuestionId,
-            option.answerOptionText
-          );
-        }
+        let isCorretAnswer =
+          option.answerOptionText === question.correct_answer;
+        await insertAnswerOption(
+          client,
+          isCorretAnswer,
+          generatedQuestionId,
+          option.answerOptionText
+        );
       }
     }
     client.release();
   } catch (err) {
     console.error(err);
-    throw new Error("Inserting to database failed");
+    throw new Error(`Inserting to database failed: ${err}`);
   } finally {
-    console.log("====================================");
-    console.log("looped all");
-    console.log("====================================");
     await pool.end();
   }
 }
 ///--------------------------
-const createQuestion = async (
+const insertQuestion = async (
   client: PoolClient,
   question_text: String,
-  exam_id: number,
-  question_id?: number
+  exam_id: number
 ) => {
   try {
-    const insertQuery = {
+    const insertResult: QueryResult = await client.query({
       text: `
         INSERT INTO questions(question_text, exam_id)
         VALUES($1, $2)
         RETURNING question_id;
         `,
       values: [question_text, exam_id],
-    };
-    const insertResult: QueryResult = await client.query(insertQuery);
+    });
     if (insertResult.rows.length > 0) {
       generatedQuestionId = insertResult.rows[0].question_id;
     }
@@ -89,50 +74,40 @@ const createQuestion = async (
     throw new Error(`Inserting or updating into questions failed: ${error}`);
   }
 };
-
-const createAnswerOption = async (
+///--------------------------
+const insertAnswerOption = async (
   client: PoolClient,
   answerCorrect: boolean,
   question_id: number,
-  answerText: string,
-  answer_id?: number
+  answerText: string
 ) => {
   try {
-    const query = {
+    const result = await client.query({
       text: `
       INSERT INTO answer_options(answer_text, answer_correct, question_id)
       VALUES($1, $2, $3)
     `,
       values: [answerText, answerCorrect, question_id],
-    };
-
-    const result = await client.query(query);
+    });
   } catch (error) {
     throw new Error(`Inserting into answer options failed: ${error}`);
   }
 };
 
 ///--------------------------
-async function createExam(
-  client: PoolClient,
-  name: String,
-  createdAt: String,
-  examId?: Number
-) {
+async function insertExam(client: PoolClient, name: String, createdAt: String) {
   try {
     const updated_at = new Date();
     const published_at = new Date();
     const created_at = new Date(createdAt.toString());
-
-    const insertQuery = {
+    const insertResult: QueryResult = await client.query({
       text: `
           INSERT INTO exams(exam_name, created_at, published_at, updated_at)
           VALUES($1, $2, $3, $4)
           RETURNING exam_id;
         `,
       values: [name, created_at, published_at, updated_at],
-    };
-    const insertResult: QueryResult = await client.query(insertQuery);
+    });
     if (insertResult.rows.length > 0) {
       generatedExamId = insertResult.rows[0].exam_id;
     }

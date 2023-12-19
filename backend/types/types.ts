@@ -1,4 +1,5 @@
 export type Question = {
+  deleted?: boolean;
   id: string;
   question_text: string;
   options: AnswerOption[];
@@ -8,6 +9,7 @@ export type Question = {
 };
 
 export type AnswerOption = {
+  deleted?: boolean;
   answerOptionId?: string;
   answerOptionText: string;
 };
@@ -21,25 +23,16 @@ export type Exam = {
   questions: Question[];
 };
 
-export type CreateQuestion = {
-  id?: string;
-  question_text: string;
-  answer_options: string[];
-  correct_answer: string;
-  createQuestionInput: string;
-  addOptionsInput: string;
-};
+export class CustomError extends Error {
+  code?: string;
 
-export const defaultValuesCreateQuestion = {
-  question_text: "",
-  answer_options: "",
-  correct_answer: "",
-  createQuestionInput: "",
-  addOptionsInput: "",
-};
-
-export const defaultValuesExamState = {
-  allQuestionAnswered: false,
-  showAddQuestionModal: false,
-  questionsChecked: false,
-};
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = "CustomError";
+    this.code = code;
+    // Ensure stack trace is captured for the error
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, CustomError);
+    }
+  }
+}

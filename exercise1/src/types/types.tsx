@@ -5,9 +5,11 @@ export type Question = {
   correct_answer: string;
   selected_answer?: string;
   answer_correct?: boolean;
+  deleted?: boolean;
 };
 
 export type AnswerOption = {
+  deleted?: boolean;
   answerOptionId?: string;
   answerOptionText: string;
 };

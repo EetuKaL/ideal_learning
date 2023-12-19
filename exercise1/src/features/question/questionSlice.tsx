@@ -64,7 +64,10 @@ export const login = createAsyncThunk(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name: payload.name, password: payload.password }),
+      body: JSON.stringify({
+        user_email: payload.name,
+        user_password: payload.password,
+      }),
     });
     if (!response.ok) {
       throw new Error("Login response was not ok");
@@ -139,7 +142,14 @@ export const examSlice = createSlice({
         (exam) => exam.examId === state.selectedExam
       );
       const exam = state.exams![examIndex];
-      state.createQuestion.answer_options.splice(action.payload.index, 1);
+      if (
+        state.createQuestion.answer_options[action.payload.index].answerOptionId
+      ) {
+        state.createQuestion.answer_options[action.payload.index].deleted =
+          true;
+      } else {
+        state.createQuestion.answer_options.splice(action.payload.index, 1);
+      }
       state.createQuestion.correct_answer = "";
     },
     select_correct_option: (
@@ -193,6 +203,7 @@ export const examSlice = createSlice({
           question_text: state.createQuestion.question_text,
           options: state.createQuestion.answer_options.map((i) => {
             return {
+              deleted: i.deleted,
               answerOptionId: i.answerOptionId,
               answerOptionText: i.answerOptionText,
             };
@@ -256,7 +267,8 @@ export const examSlice = createSlice({
         (exam) => exam.examId === state.selectedExam
       );
       const exam = state.exams![examIndex];
-      exam.questions.splice(action.payload.index, 1);
+      exam.questions[action.payload.index].deleted =
+        !exam.questions[action.payload.index].deleted;
     },
     check_answers: (state) => {
       const examIndex = state.exams!.findIndex(
@@ -292,7 +304,7 @@ export const examSlice = createSlice({
     },
     create_exam(state) {
       const newExam: Exam = {
-        created_at: new Date(getCurrentDate()),
+        created_at: getCurrentDate(),
         name: state.create_exam_input_value,
         examId: uid(),
         questions: [],

@@ -84,32 +84,39 @@ const QuestionScreen: React.FC<props> = ({ exam }) => {
       <h3>{question_text}</h3>
       <div className="row-container">
         {answer_options.map((answer, index) => {
-          return (
-            <div className="option-button-container">
-              <button
-                style={{
-                  backgroundColor:
-                    correct_answer === answer.answerOptionText
-                      ? "green"
-                      : "#3498db",
-                }}
-                onClick={() =>
-                  dispatch(select_correct_option({ index: index }))
-                }
-                className="option-button-review"
-              >
-                {answer.answerOptionText}
-              </button>
-              <button
-                className="review-delete-button"
-                onClick={() => dispatch(delete_answer_option({ index: index }))}
-              ></button>
-            </div>
-          );
+          if (answer.deleted !== true) {
+            return (
+              <div className="option-button-container">
+                <button
+                  style={{
+                    backgroundColor:
+                      correct_answer === answer.answerOptionText
+                        ? "green"
+                        : "#3498db",
+                  }}
+                  onClick={() =>
+                    dispatch(select_correct_option({ index: index }))
+                  }
+                  className="option-button-review"
+                >
+                  {answer.answerOptionText}
+                </button>
+                <button
+                  className="review-delete-button"
+                  onClick={() =>
+                    dispatch(delete_answer_option({ index: index }))
+                  }
+                ></button>
+              </div>
+            );
+          }
         })}
       </div>
       <button
-        onClick={() => dispatch(add_question({ id: state.createQuestion.id }))}
+        onClick={() => {
+          dispatch(add_question({ id: state.createQuestion.id }));
+          navigate("/exam");
+        }}
         disabled={!isAddButtonEnabled}
         style={{
           marginTop: "100px",

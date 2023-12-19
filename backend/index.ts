@@ -1,42 +1,48 @@
 import express, { Express, Request, Response, response } from "express";
 import { Exam } from "./types/types";
-import { v4 as uid } from "uuid";
-/* const quizState = require("../quizState.json"); */
 const fs = require("fs");
-const { writeFile } = require("fs");
-import bcrypt from "bcrypt";
-import { promisify } from "util";
 import cors from "cors";
-import { genrateToken } from "./genrateToken";
-import isLogin from "./middleware";
+import isLogin from "./middleware/middleware";
 import https from "https";
-import {
-  fetchAndBuildExams,
-  fetchAnswerOptions,
-  fetchExams,
-  fetchQuestions,
-} from "./queries/selectExam";
-import { postNewExam } from "./queries/insertExam";
-import { deleteExam } from "./queries/deleteExam";
+import { fetchFullExams } from "./queries/exam/selectExam";
+import { deleteExam } from "./queries/exam/deleteExam";
+import { postExam } from "./queries/exam/insertUpdateExam";
+import { registerUser } from "./queries/user/insertUser";
 
+import hashPassword from "./utils/hashPassword";
+import { getUser } from "./queries/user/selectUser";
+import { errorDuplicateKey, errorUserNotFound } from "./Errors";
+import bcrypt from "bcrypt";
+import { genrateToken } from "./middleware/genrateToken";
 var privateKey = fs.readFileSync("./privateKey.key", "utf8");
 var certificate = fs.readFileSync("./certificate.crt", "utf8");
 
 var credentials = { key: privateKey, cert: certificate };
+
 // Enable All CORS Requests
 const app = express();
 const port = 3001;
+
 app.use(express.json());
 app.use(cors());
 
-/* fetchQuestions(1); */
-/* fetchAnswerOptions(4); */
-
-app.get("/", async (req, res) => {
+app.get("/", isLogin, async (req, res) => {
   let response;
   try {
-    let data = await fetchAndBuildExams();
-    response = { statusCode: 200, body: data };
+    let user = await fetchFullExams();
+    response = { statusCode: 200, body: user };
+  } catch (error) {
+    response = { statusCode: 500, message: "Internal server error:" };
+  } finally {
+    res.json(response);
+  }
+});
+app.get("/:id", isLogin, async (req, res) => {
+  let response;
+  const examId = parseInt(req.params.id);
+  try {
+    let user = await fetchFullExams(examId);
+    response = { statusCode: 200, body: user };
   } catch (error) {
     response = { statusCode: 500, message: "Internal server error:" };
   } finally {
@@ -44,26 +50,10 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.post("/initialData", async (req, res) => {
-  if (req["body"].hasOwnProperty("exams")) {
-    try {
-      saveData(JSON.stringify(req["body"]), res);
-    } catch (error) {
-      console.log(error);
-    }
-  } else {
-    res.send({
-      statusCode: 500,
-      message:
-        " in the request body was 'exams' property missing \n check if there is typos",
-    });
-  }
-});
-
-app.post("/", async (req, res) => {
+app.post("/", isLogin, async (req, res) => {
   try {
     let exam: Exam = req["body"];
-    await postNewExam(exam);
+    await postExam(exam);
     res
       .status(200)
       .send({ statusCode: 200, message: "succesfully posted exam" });
@@ -73,7 +63,7 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.delete("/:id", async (req, res) => {
+app.delete("/:id", isLogin, async (req, res) => {
   const examID = req.params.id;
   try {
     if (examID) {
@@ -87,54 +77,43 @@ app.delete("/:id", async (req, res) => {
   }
 });
 
-app.post("/createAccount", async (req, res) => {
-  if (
-    req.headers.hasOwnProperty("name") &&
-    req.headers.hasOwnProperty("password")
-  ) {
+app.post("/register", async (req, res) => {
+  if (req.body["user_email"] && req.body["user_password"]) {
     try {
-      const authName = req.headers["name"];
-      const authPassword = req.headers["password"]?.toString();
-      const data = JSON.parse(await getData());
-      const hashedPassword = await hashPassword(authPassword);
-      let newData = {
-        ...data,
-        account: {
-          id: uid(),
-          name: authName,
-          password: hashedPassword,
-        },
-      };
+      const hashedPassword = await hashPassword(
+        req.body["user_password"].toString()
+      );
 
-      saveData(JSON.stringify(newData), res);
+      await registerUser(req.body["user_email"].toString(), hashedPassword);
+      res
+        .status(200)
+        .send(`Successfully created user: ${req.body["user_email"]}`);
     } catch (error) {
-      console.log(error);
-      res.status(500).send("Internal server error");
+      if (error instanceof Error) {
+        if (error.message === errorDuplicateKey) {
+          res.status(409).send("User is already registered");
+        } else {
+          res.status(500).send("Internal server error");
+        }
+      }
     }
   } else {
-    res.status(400).send("Name or password header is missing");
+    res.status(400).send("user_id or user_password in the header is missing");
   }
 });
 
 app.post("/login", async (req, res) => {
-  const { name, password } = req.body;
-  console.log(req);
-  const data = JSON.parse(await getData());
-
-  if (typeof password !== "string") {
-    throw new Error("Password not a string");
-  }
-
-  if (
-    data["account"]["name"] === name &&
-    (await bcrypt.compare(password, data["account"]["password"]))
-  ) {
-    // If authentication is successful, generate a JWT token
-    const token = genrateToken(data["account"]["id"]);
-    // Send the token in the response
-    res.status(200).json({ token });
-  } else {
-    res.status(400).send("wrong username or password");
+  try {
+    const { user_email, user_password } = req.body;
+    const user = await getUser(user_email);
+    if (user && (await bcrypt.compare(user_password, user.user_password))) {
+      const token = genrateToken(user_email);
+      res.status(200).json({ token });
+    } else {
+      res.status(404).send("User or password doesn't match");
+    }
+  } catch (error) {
+    res.status(500).send("Internal server error");
   }
 });
 
@@ -143,48 +122,3 @@ var httpsServer = https.createServer(credentials, app);
 httpsServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-const getData = async () => {
-  const readFileAsync = promisify(fs.readFile);
-  const data: string = await readFileAsync("./quizState.json", "utf8");
-  return data;
-};
-
-const saveData = (data: string, res: Response) => {
-  writeFile("./quizState.json", data, (error: Error) => {
-    if (error) {
-      return res.status(500).send("Error when posting data in the server");
-    }
-    res.status(200).send({ statusCode: 200, message: "Post was succesfull" });
-  });
-};
-const hashPassword = async (plaintextPassword: any) => {
-  const saltRounds = 10;
-  try {
-    const hash = await bcrypt.hash(plaintextPassword, saltRounds);
-    return hash;
-  } catch (error) {
-    // Handle error
-    throw new Error("Password hashing failed");
-  }
-};
-
-const checkAuthentication = async (
-  username: any,
-  password: any
-): Promise<boolean> => {
-  const data = JSON.parse(await getData());
-
-  if (typeof password !== "string") {
-    throw new Error("Password not a string");
-  }
-
-  if (
-    data["account"]["name"] === name &&
-    (await bcrypt.compare(password, data["account"]["password"]))
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-};

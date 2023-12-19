@@ -1,8 +1,8 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
-import { Link, useNavigate } from "react-router-dom";
-import { create_exam, select_exam } from "../features/question/questionSlice";
+import { useNavigate } from "react-router-dom";
+import { select_exam } from "../features/question/questionSlice";
 import CreateExamPopUp from "../components/CreateExamPopUp";
 
 const MainScreen: React.FC = () => {
@@ -10,12 +10,20 @@ const MainScreen: React.FC = () => {
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
 
+  function handleSignOut(): void {
+    localStorage.removeItem("token");
+    navigate("/login");
+  }
+
   return (
     <div>
       {state.isLoading ? (
         <p>Loading...</p>
       ) : (
         <>
+          <button onClick={() => handleSignOut()} className="signout-btn">
+            Sign out
+          </button>
           <div className="row-container">
             <h2>Create exam</h2>
             <CreateExamPopUp />

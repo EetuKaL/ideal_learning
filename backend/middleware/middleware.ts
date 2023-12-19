@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import getTokenFromHeader from "./getTokeFromHeader";
-import verifyToken from "./verifyJTWToken";
+import verifyToken from "../verifyJTWToken";
 
 interface CustomRequest extends Request {
   user?: any;

@@ -1,6 +1,5 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../store";
 import { reset_state } from "../features/question/questionSlice";
 import { Exam } from "../types/types";
 import { useNavigate } from "react-router-dom";

@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postExam = void 0;
 const pg_1 = require("pg");
-const deleteExam_1 = require("./deleteExam");
+const deleteExam_1 = require("./exam/deleteExam");
 const isNumber_1 = require("../utils/isNumber");
 let generatedExamId;
 let generatedQuestionId;
@@ -30,6 +30,7 @@ function postExam(exam) {
             if (exam.examId && (0, isNumber_1.isNumber)(exam.examId)) {
                 examID = parseInt(exam.examId);
             }
+            /// Create / Update Exam
             yield createExam(client, exam.name, exam.created_at, examID);
             for (const question of exam.questions) {
                 let id;
@@ -37,7 +38,6 @@ function postExam(exam) {
                     id = parseInt(question.id);
                 }
                 if (question.deleted && id) {
-                    console.log("Gonna delete Question. With ID: ", id);
                     yield (0, deleteExam_1.deleteQuestion)(client, id);
                     continue;
                 }

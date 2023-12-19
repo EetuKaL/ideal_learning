@@ -12,9 +12,27 @@
   align-self: center;
   width: 20px;
   height: 20px;
+
   border-radius: 50%;
   margin-left: 10px;
   margin-right: 8px; /* Adjust margin as needed */
+}
+.delete-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.delete-text {
+  color: #f7495d;
+  position: absolute;
+  top: 5px;
+  font-size: 30px;
+  -webkit-text-stroke: 1px black; /* For Safari/Chrome */
+  text-decoration: underline;
+  text-decoration-thickness: 5px;
+  text-decoration-color: #f7495d;
+  transform: rotate(30deg);
 }
 
 .button-container {
@@ -149,7 +167,7 @@
 }
 
 .option-button:hover {
-  background-color: green;
+  background-color: #15669d;
 }
 
 .submit-button {
@@ -165,7 +183,7 @@
   transition: background-color 0.3s ease;
 }
 .submit-button:hover {
-  background-color: green;
+  background-color: #15669d;
 }
 .submit-questions-button {
   margin-top: 10px;
@@ -317,6 +335,25 @@
   background-color: #15669d;
 }
 
+.signout-btn {
+  padding: 8px 16px;
+  position: relative;
+  bottom: 100px;
+  color: #fff;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: medium;
+  text-decoration: underline;
+  color: #3498db;
+  border: dotted;
+  margin: 5px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.signout-btn:hover {
+  color: #15669d;
+}
 .modal-overlay {
   position: fixed;
   top: 0;

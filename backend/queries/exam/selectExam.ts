@@ -37,13 +37,6 @@ export async function fetchExams(examId?: number) {
       };
     });
 
-    /*   if (examId) {
-      console.log(exams[0]);
-      return exams[0];
-    } else {
-      console.log(exams);
-      return exams;
-    } */
     return exams;
   } catch (err) {
     console.error(err);
@@ -125,9 +118,9 @@ export async function fetchAnswerOptions(questionId: number) {
   }
 }
 
-export async function fetchAndBuildExams() {
+export async function fetchFullExams(id?: number) {
   try {
-    const exams = await fetchExams();
+    const exams = await fetchExams(id);
     if (exams) {
       const examsWithQuestionsAndAnswers = await Promise.all(
         exams.map(async (exam) => {
@@ -168,5 +161,76 @@ export async function fetchAndBuildExams() {
     }
   } catch (err) {
     console.error(err);
+  }
+}
+
+export async function fetchExamsWithSingleQuery(examId?: number) {
+  const client = new Client({
+    host: "localhost",
+    port: 5432,
+    database: "postgres",
+    user: "postgres",
+    password: "kissa123",
+  });
+  try {
+    await client.connect();
+
+    let result;
+
+    const query = {
+      text: `
+        SELECT 
+          e.exam_id,
+          e.exam_name,
+          e.published_at,
+          e.updated_at,
+          e.created_at,
+          q.question_text,
+          q.question_id,
+          a.answer_text,
+          a.answer_correct,
+          a.answer_id
+        FROM 
+          exams e
+        LEFT JOIN 
+          questions q ON e.exam_id = q.exam_id
+        LEFT JOIN 
+          answer_options a ON q.question_id = a.question_id;
+        `,
+    };
+    result = await client.query(query);
+
+    let exam_id;
+    const exams = result.rows.map((exam) => {
+      return {
+        examId: exam.exam_id,
+        name: exam.exam_name,
+        created_at: exam.created_at,
+        published_at: exam.published_at,
+        updated_at: exam.updated_at,
+        questions: [
+          {
+            question_text: exam.question_text,
+            question_id: exam.question_id,
+            options: [
+              { answer_text: exam.answer_text, answer_id: exam.answer_id },
+            ],
+          },
+        ],
+      };
+    });
+
+    /*   if (examId) {
+      console.log(exams[0]);
+      return exams[0];
+    } else {
+      console.log(exams);
+      return exams;
+    } */
+    return exams;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    await client.end();
   }
 }

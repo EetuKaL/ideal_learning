@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import { Exam } from "../types/types";
 import { getSelectedExam } from "../utils/getSelectedExam";
 import { ThunkDispatch } from "@reduxjs/toolkit";
+import AnswerOption from "../components/AnswerOption";
+import AnswerOptionItem from "../components/AnswerOption";
 
 type ExamScreenProps = {
   exam: Exam;
@@ -40,17 +42,29 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        name: "mikko",
-        password: "12345",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify(data),
     });
+    console.log("response content: ", response);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     } else {
       dispatch(delete_exam());
       navigate("/");
     }
+  };
+
+  const handleAnswerOptionClick = (
+    selectedQuestion: any,
+    selectedText: any
+  ) => {
+    dispatch(
+      select_option({
+        selectedQuestion: selectedQuestion,
+        selected: selectedText,
+      })
+    );
   };
 
   const handleDelete = async () => {
@@ -120,6 +134,14 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
                   className="list-item"
                 >
                   <div
+                    className="delete-container"
+                    style={{
+                      visibility: question.deleted ? "visible" : "hidden",
+                    }}
+                  >
+                    <h2 className="delete-text">Will be deleted</h2>
+                  </div>
+                  <div
                     key={"row-container-spaceBetween-" + index}
                     className="row-container-spaceBetween"
                   >
@@ -155,26 +177,17 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
                   </div>
                   {question.options.map((option, index) => {
                     return (
-                      <button
-                        key={"answer-option-button-" + index}
-                        style={{
-                          backgroundColor:
-                            option.answerOptionText === question.selected_answer
-                              ? "#15669d"
-                              : "#3498db",
-                        }}
-                        className="option-button"
-                        onClick={() =>
-                          dispatch(
-                            select_option({
-                              selectedQuestion: question.id,
-                              selected: option.answerOptionText,
-                            })
+                      <AnswerOptionItem
+                        index={index}
+                        option={option}
+                        selected_answer={question.selected_answer}
+                        onClickFunction={() =>
+                          handleAnswerOptionClick(
+                            question.id,
+                            option.answerOptionText
                           )
                         }
-                      >
-                        {option.answerOptionText}
-                      </button>
+                      />
                     );
                   })}
                 </div>
