@@ -14,6 +14,11 @@ export type AnswerOption = {
   answerOptionText: string;
 };
 
+export enum ConfirmType {
+  Delete,
+  Publish,
+}
+
 export type Exam = {
   created_at: Date | String;
   published_at?: Date;
@@ -35,6 +40,9 @@ export type ApplicationState = {
   loginInput?: string;
   passwordInput?: string;
   loggedIn: boolean;
+  showDeletePopup: boolean;
+  showPublishPopup: boolean;
+  errorMessage?: string;
 };
 
 export type CreateQuestion = {

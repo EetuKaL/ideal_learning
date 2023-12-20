@@ -25,47 +25,58 @@ function postExam(exam) {
             password: "kissa123",
         });
         const client = yield pool.connect();
-        let examID;
-        if (exam.examId && (0, isNumber_1.isNumber)(exam.examId)) {
-            examID = parseInt(exam.examId);
-        }
-        /// Insert / Update Exam
-        yield createExam(client, exam.name, exam.created_at, examID);
-        for (const question of exam.questions) {
-            let id;
-            /// Check that id is number and present
-            if (question.id && (0, isNumber_1.isNumber)(question.id)) {
-                id = parseInt(question.id);
+        try {
+            yield client.query("BEGIN");
+            let examID;
+            if (exam.examId && (0, isNumber_1.isNumber)(exam.examId)) {
+                examID = parseInt(exam.examId);
             }
-            /// If delete tag and id present, delete the question.
-            if (question.deleted && id) {
-                yield (0, deleteExam_1.deleteQuestion)(client, id);
-                continue;
-                /// Else Insert / Update question
-            }
-            else {
-                yield insertQuestion(client, question.question_text, generatedExamId, id);
-            }
-            for (const option of question.options) {
-                /// Check the correct answer
-                let isCorretAnswer = option.answerOptionText === question.correct_answer;
-                let answerId;
+            /// Insert / Update Exam
+            yield createExam(client, exam.name, exam.created_at, examID);
+            for (const question of exam.questions) {
+                let id;
                 /// Check that id is number and present
-                if (option.answerOptionId && (0, isNumber_1.isNumber)(option.answerOptionId)) {
-                    answerId = parseInt(option.answerOptionId);
+                if (question.id && (0, isNumber_1.isNumber)(question.id)) {
+                    id = parseInt(question.id);
                 }
-                /// If delete tag and id present, delete the answer option.
-                if (option.deleted && answerId) {
-                    yield (0, deleteExam_1.deleteAnswerOption)(client, answerId);
-                    /// Else Insert / Update Answer option
+                /// If delete tag and id present, delete the question.
+                if (question.deleted && id) {
+                    yield (0, deleteExam_1.deleteQuestion)(client, id);
+                    continue;
+                    /// Else Insert / Update question
                 }
                 else {
-                    yield insertAnswerOption(client, isCorretAnswer, generatedQuestionId, option.answerOptionText, answerId);
+                    yield insertQuestion(client, question.question_text, generatedExamId, id);
+                }
+                for (const option of question.options) {
+                    /// Check the correct answer
+                    let isCorretAnswer = option.answerOptionText === question.correct_answer;
+                    let answerId;
+                    /// Check that id is number and present
+                    if (option.answerOptionId && (0, isNumber_1.isNumber)(option.answerOptionId)) {
+                        answerId = parseInt(option.answerOptionId);
+                    }
+                    /// If delete tag and id present, delete the answer option.
+                    if (option.deleted && answerId) {
+                        yield (0, deleteExam_1.deleteAnswerOption)(client, answerId);
+                        /// Else Insert / Update Answer option
+                    }
+                    else {
+                        yield insertAnswerOption(client, isCorretAnswer, generatedQuestionId, option.answerOptionText, answerId);
+                    }
                 }
             }
+            yield client.query("COMMIT");
         }
-        client.release();
-        yield pool.end();
+        catch (error) {
+            yield client.query("ROLLBACK");
+            throw new Error("Inserting/Updating an exam failed");
+        }
+        finally {
+            client.release();
+            /// Millon katkaistaan yhteys pooliin?
+            //await pool.end();
+        }
     });
 }
 exports.postExam = postExam;

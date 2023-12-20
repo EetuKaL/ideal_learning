@@ -1,22 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-/* import { RootState } from '../types';  */ // Import your RootState type
 import { v4 as uid } from "uuid";
-import {
-  ApplicationState,
-  Exam,
-  Question,
-  defaultValuesCreateQuestion,
-} from "../../types/types";
+import { ApplicationState, Exam, Question } from "../../types/types";
 import { current } from "@reduxjs/toolkit";
 import { initialState as initState } from "../../data/initialdata";
-import { useNavigate } from "react-router-dom";
 import { getCurrentDate } from "../../utils/formatDate";
-
-const delay = (ms: number) => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-};
 
 const clearCreateQuestionState = (state: ApplicationState) => {
   state.createQuestion.addOptionsInput = "";
@@ -36,11 +23,18 @@ export const fetchState = createAsyncThunk("exam/fetchState", async () => {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
+    if (!response.ok) {
+      throw new Error(response.status.toString());
+    }
     result = await response.json();
-    console.log(result);
   } catch (error) {
-    console.error("Fetch data error:", error);
-    throw new Error("Something went wrong with data fetch");
+    if (error instanceof Error) {
+      if (error.message === "400") {
+        throw error.message;
+      } else {
+        throw new Error("Something went wrong with data fetch");
+      }
+    }
   }
   return result.body;
 });
@@ -58,7 +52,6 @@ interface LoginResponse {
 export const login = createAsyncThunk(
   "exam/login",
   async (payload: LoginPayload) => {
-    let result;
     const response = await fetch("https://localhost:3001/login", {
       method: "POST",
       headers: {
@@ -82,7 +75,6 @@ const getFromLocal = () => {
   // Check if local storage has the state data
   const localState: string | null = localStorage.getItem("state");
   let parsedState: ApplicationState;
-  /*   await delay(1000) */
 
   if (typeof localState === "string") {
     parsedState = JSON.parse(localState);
@@ -328,15 +320,25 @@ export const examSlice = createSlice({
     set_isLoggedIn(state, action: PayloadAction<{ isLoggedIn: boolean }>) {
       state.loggedIn = action.payload.isLoggedIn;
     },
+    set_showDeletePopup(state, action: PayloadAction<{ show: boolean }>) {
+      state.showDeletePopup = action.payload.show;
+    },
+    set_showPublishPopup(state, action: PayloadAction<{ show: boolean }>) {
+      state.showPublishPopup = action.payload.show;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchState.fulfilled, (state, action) => {
-      const examsToAdd = state.exams?.filter(
-        (localExam: Exam) =>
-          !action.payload?.some(
-            (fetchedExam: Exam) => localExam.examId === fetchedExam.examId
-          )
-      );
+      const examsToAdd = state.exams
+        ? state.exams
+            ?.filter((item) => item !== null)
+            .filter(
+              (localExam: Exam) =>
+                !action.payload?.some(
+                  (fetchedExam: Exam) => localExam.examId === fetchedExam.examId
+                )
+            )
+        : [];
       state.exams = examsToAdd?.concat(action.payload);
       state.isLoading = false;
     });
@@ -344,12 +346,18 @@ export const examSlice = createSlice({
       state.isLoading = true;
     });
     builder.addCase(fetchState.rejected, (state, action) => {
+      if (action.error.message === "400") {
+        localStorage.removeItem("token");
+      } else {
+        state.errorMessage = action.error.message;
+      }
       state.isLoading = false;
     });
     builder.addCase(login.fulfilled, (state, action) => {
       if (action.payload && action.payload.token) {
         localStorage.setItem("token", action.payload.token);
       }
+      state.isLoading = false;
     });
     builder.addCase(login.pending, (state, action) => {
       state.isLoading = true;
@@ -382,6 +390,8 @@ export const {
   handle_login_input,
   handle_password_input,
   set_isLoggedIn,
+  set_showDeletePopup,
+  set_showPublishPopup,
 } = examSlice.actions;
 
 export default examSlice.reducer;

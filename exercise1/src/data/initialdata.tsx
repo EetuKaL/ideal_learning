@@ -12,6 +12,8 @@ export const initialState: ApplicationState = {
   questionsChecked: false,
   createQuestion: { ...defaultValuesCreateQuestion, answer_options: [] },
   isLoading: false,
+  showDeletePopup: false,
+  showPublishPopup: false,
   exams: [
     {
       ...defaultValuesExamState,

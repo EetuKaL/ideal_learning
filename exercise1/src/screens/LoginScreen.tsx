@@ -17,11 +17,14 @@ const LoginScreen: React.FC = () => {
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
   async function handleLogin() {
-    thunkDispatch(
-      login({ name: loginInput || "", password: passwordInput || "" })
-    ).then((response) => {
+    try {
+      await thunkDispatch(
+        login({ name: loginInput || "", password: passwordInput || "" })
+      );
       navigate("/");
-    });
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   }
 
   //// CREATE REGISTER METHOD LATER
@@ -35,7 +38,7 @@ const LoginScreen: React.FC = () => {
         <h2 style={{ color: "white" }}>Login</h2>
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Email"
           value={loginInput}
           onChange={(e) =>
             dispatch(handle_login_input({ input: e.target.value }))
@@ -53,7 +56,7 @@ const LoginScreen: React.FC = () => {
         />
         <button
           type="button"
-          onClick={() => handleLogin()}
+          onClick={async () => await handleLogin()}
           className="login-button"
         >
           Login

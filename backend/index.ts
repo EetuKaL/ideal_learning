@@ -8,23 +8,21 @@ import { fetchFullExams } from "./queries/exam/selectExam";
 import { deleteExam } from "./queries/exam/deleteExam";
 import { postExam } from "./queries/exam/insertUpdateExam";
 import { registerUser } from "./queries/user/insertUser";
-
 import hashPassword from "./utils/hashPassword";
 import { getUser } from "./queries/user/selectUser";
-import { errorDuplicateKey, errorUserNotFound } from "./Errors";
+import { errorDuplicateKey } from "./Errors";
 import bcrypt from "bcrypt";
 import { genrateToken } from "./middleware/genrateToken";
+
+/// Https credentials
 var privateKey = fs.readFileSync("./privateKey.key", "utf8");
 var certificate = fs.readFileSync("./certificate.crt", "utf8");
-
 var credentials = { key: privateKey, cert: certificate };
 
-// Enable All CORS Requests
+/// Start App
 const app = express();
-const port = 3001;
 
-app.use(express.json());
-app.use(cors());
+app.use(express.json()).use(cors());
 
 app.get("/", isLogin, async (req, res) => {
   let response;
@@ -37,6 +35,7 @@ app.get("/", isLogin, async (req, res) => {
     res.json(response);
   }
 });
+
 app.get("/:id", isLogin, async (req, res) => {
   let response;
   const examId = parseInt(req.params.id);
@@ -119,6 +118,6 @@ app.post("/login", async (req, res) => {
 
 var httpsServer = https.createServer(credentials, app);
 
-httpsServer.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+httpsServer.listen(3001, () => {
+  console.log(`Example app listening on port 3001`);
 });

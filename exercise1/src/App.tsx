@@ -25,6 +25,7 @@ import {
 } from "./features/question/questionSlice";
 import { ThunkDispatch } from "@reduxjs/toolkit";
 import LoginScreen from "./screens/LoginScreen";
+import Redirect from "./components/Redirect";
 function App() {
   const dispatch = useDispatch();
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
@@ -62,21 +63,17 @@ function App() {
         return false;
       }
     };
+    const fetchData = async () => {
+      await thunkDispatch(fetchState());
+    };
 
     if (isLoggedIn() === false) {
       navigate("/login");
     }
-  }, [location]);
-
-  /// Get exams from database if location is '/'
-  useEffect(() => {
-    const fetchData = async () => {
-      await thunkDispatch(fetchState());
-    };
-    if (location.pathname === "/") {
+    if (isLoggedIn() && location.pathname === "/") {
       fetchData();
     }
-  }, [location]);
+  }, [location.pathname]);
 
   return (
     <div className="App">
@@ -107,6 +104,7 @@ function App() {
             />
           </>
         )}
+        <Route path="*" element={<Redirect />} />
       </Routes>
     </div>
   );

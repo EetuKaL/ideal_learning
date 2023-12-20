@@ -26,14 +26,13 @@ const selectUser_1 = require("./queries/user/selectUser");
 const Errors_1 = require("./Errors");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const genrateToken_1 = require("./middleware/genrateToken");
+/// Https credentials
 var privateKey = fs.readFileSync("./privateKey.key", "utf8");
 var certificate = fs.readFileSync("./certificate.crt", "utf8");
 var credentials = { key: privateKey, cert: certificate };
-// Enable All CORS Requests
+/// Start App
 const app = (0, express_1.default)();
-const port = 3001;
-app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+app.use(express_1.default.json()).use((0, cors_1.default)());
 app.get("/", middleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let response;
     try {
@@ -129,6 +128,6 @@ app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 }));
 var httpsServer = https_1.default.createServer(credentials, app);
-httpsServer.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+httpsServer.listen(3001, () => {
+    console.log(`Example app listening on port 3001`);
 });

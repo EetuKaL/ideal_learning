@@ -19,55 +19,70 @@ export async function postExam(exam: Exam) {
 
   const client = await pool.connect();
 
-  let examID;
+  try {
+    await client.query("BEGIN");
+    let examID;
 
-  if (exam.examId && isNumber(exam.examId)) {
-    examID = parseInt(exam.examId);
-  }
-
-  /// Insert / Update Exam
-  await createExam(client, exam.name, exam.created_at, examID);
-
-  for (const question of exam.questions) {
-    let id;
-    /// Check that id is number and present
-    if (question.id && isNumber(question.id)) {
-      id = parseInt(question.id);
+    if (exam.examId && isNumber(exam.examId)) {
+      examID = parseInt(exam.examId);
     }
 
-    /// If delete tag and id present, delete the question.
-    if (question.deleted && id) {
-      await deleteQuestion(client, id);
-      continue;
-      /// Else Insert / Update question
-    } else {
-      await insertQuestion(client, question.question_text, generatedExamId, id);
-    }
-    for (const option of question.options) {
-      /// Check the correct answer
-      let isCorretAnswer = option.answerOptionText === question.correct_answer;
-      let answerId;
+    /// Insert / Update Exam
+    await createExam(client, exam.name, exam.created_at, examID);
+
+    for (const question of exam.questions) {
+      let id;
       /// Check that id is number and present
-      if (option.answerOptionId && isNumber(option.answerOptionId)) {
-        answerId = parseInt(option.answerOptionId);
+      if (question.id && isNumber(question.id)) {
+        id = parseInt(question.id);
       }
-      /// If delete tag and id present, delete the answer option.
-      if (option.deleted && answerId) {
-        await deleteAnswerOption(client, answerId);
-        /// Else Insert / Update Answer option
+
+      /// If delete tag and id present, delete the question.
+      if (question.deleted && id) {
+        await deleteQuestion(client, id);
+        continue;
+        /// Else Insert / Update question
       } else {
-        await insertAnswerOption(
+        await insertQuestion(
           client,
-          isCorretAnswer,
-          generatedQuestionId,
-          option.answerOptionText,
-          answerId
+          question.question_text,
+          generatedExamId,
+          id
         );
       }
+      for (const option of question.options) {
+        /// Check the correct answer
+        let isCorretAnswer =
+          option.answerOptionText === question.correct_answer;
+        let answerId;
+        /// Check that id is number and present
+        if (option.answerOptionId && isNumber(option.answerOptionId)) {
+          answerId = parseInt(option.answerOptionId);
+        }
+        /// If delete tag and id present, delete the answer option.
+        if (option.deleted && answerId) {
+          await deleteAnswerOption(client, answerId);
+          /// Else Insert / Update Answer option
+        } else {
+          await insertAnswerOption(
+            client,
+            isCorretAnswer,
+            generatedQuestionId,
+            option.answerOptionText,
+            answerId
+          );
+        }
+      }
     }
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw new Error("Inserting/Updating an exam failed");
+  } finally {
+    client.release();
+    /// Millon katkaistaan yhteys pooliin?
+    //await pool.end();
   }
-  client.release();
-  await pool.end();
 }
 ///--------------------------
 const insertQuestion = async (

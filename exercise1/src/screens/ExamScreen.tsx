@@ -1,5 +1,5 @@
 import React from "react";
-import { Question } from "../types/types";
+import { ConfirmType, Question } from "../types/types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import {
@@ -8,14 +8,16 @@ import {
   delete_question,
   fetchState,
   select_option,
+  set_showDeletePopup,
+  set_showPublishPopup,
   start_editing,
 } from "../features/question/questionSlice";
 import { useNavigate } from "react-router-dom";
 import { Exam } from "../types/types";
 import { getSelectedExam } from "../utils/getSelectedExam";
 import { ThunkDispatch } from "@reduxjs/toolkit";
-import AnswerOption from "../components/AnswerOption";
 import AnswerOptionItem from "../components/AnswerOption";
+import ConfirmationPopup from "../components/ConfirmationPopup";
 
 type ExamScreenProps = {
   exam: Exam;
@@ -28,16 +30,12 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const isPublished = !!exam.published_at;
 
-  console.log("is published Exam: ", isPublished);
-
   const allQuestionAnswered =
     exam != undefined &&
     exam.questions.some((question) => !question.selected_answer);
 
   const handlePublish = async () => {
-    console.log("dsasadasdas");
     const data = getSelectedExam(state);
-    console.log(data);
     const response = await fetch("https://localhost:3001/", {
       method: "POST",
       headers: {
@@ -46,11 +44,11 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
       },
       body: JSON.stringify(data),
     });
-    console.log("response content: ", response);
     if (!response.ok) {
       throw new Error("Network response was not ok");
     } else {
       dispatch(delete_exam());
+      dispatch(set_showPublishPopup({ show: false }));
       navigate("/");
     }
   };
@@ -78,8 +76,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            name: "mikko",
-            password: "12345",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -88,6 +85,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
       } else {
         await thunkDispatch(fetchState());
         dispatch(delete_exam());
+        dispatch(set_showDeletePopup({ show: false }));
         navigate("/");
       }
     }
@@ -120,6 +118,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
           <h4 style={{ margin: "0px" }}>Add Question</h4>
         </div>
       </div>
+
       <div className="list-box-container">
         <section className="list-box">
           {typeof exam.questions !== "undefined" &&
@@ -178,6 +177,7 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
                   {question.options.map((option, index) => {
                     return (
                       <AnswerOptionItem
+                        key={"answer-option-item-" + index}
                         index={index}
                         option={option}
                         selected_answer={question.selected_answer}
@@ -215,22 +215,39 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
         <div className="row-container-spaceBetween">
           <button
             onClick={() => {
-              handleDelete();
+              dispatch(set_showDeletePopup({ show: !state.showDeletePopup }));
             }}
             style={{ backgroundColor: "red" }}
             className="submit-button"
           >
             Delete
           </button>
+          {state.showDeletePopup && (
+            <ConfirmationPopup
+              type={ConfirmType.Delete}
+              onConfirm={async () => await handleDelete()}
+              onClose={() => {
+                dispatch(set_showDeletePopup({ show: false }));
+              }}
+            />
+          )}
+
           <button
             onClick={async () => {
-              await handlePublish();
+              dispatch(set_showPublishPopup({ show: !state.showPublishPopup }));
             }}
             style={{ backgroundColor: "green" }}
             className="submit-button"
           >
             {isPublished ? "Update" : "Publish"}
           </button>
+          {state.showPublishPopup && (
+            <ConfirmationPopup
+              type={ConfirmType.Publish}
+              onConfirm={async () => await handlePublish()}
+              onClose={() => dispatch(set_showPublishPopup({ show: false }))}
+            />
+          )}
         </div>
       </div>
     </>
