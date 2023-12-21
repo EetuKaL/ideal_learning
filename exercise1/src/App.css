@@ -301,20 +301,60 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
+.error-message {
+  text-align: center;
+  color: white;
+  font-size: 1.2em;
+  padding: 10px;
+  /* Other styles */
+}
+
+.error-message-container {
+  min-height: 50px;
+  min-width: 150px;
+  border-radius: 4px;
+  background-color: red;
+  position: absolute;
+  bottom: -60px; /* Initial hidden position */
+  left: 50%;
+  transform: translateX(-50%);
+  animation: slideInOut 0.5s forwards; /* Animation applied */
+}
+
+@keyframes slideInOut {
+  0% {
+    bottom: -60px; /* Start position: fully hidden */
+  }
+  100% {
+    bottom: 50px; /* End position: visible above the bottom */
+  }
+}
+
 .login-container {
+  max-width: 500px;
+  min-width: 400px;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+.login-input-container {
+  min-width: 400px;
+  font-size: large;
+}
+
 .login-input {
-  margin-bottom: 10px;
+  font-size: large;
+ 
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
-  width: 100%;
+  width: 90%;
+  
 }
+
 
 .login-button {
   color: #101111;

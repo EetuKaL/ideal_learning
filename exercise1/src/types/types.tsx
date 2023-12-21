@@ -42,7 +42,9 @@ export type ApplicationState = {
   loggedIn: boolean;
   showDeletePopup: boolean;
   showPublishPopup: boolean;
-  errorMessage?: string;
+  errorMessage?: string | null;
+  successMessage?: string | null;
+  isLogingIn: boolean
 };
 
 export type CreateQuestion = {

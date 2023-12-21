@@ -6,6 +6,7 @@ import {
 import { v4 as uid } from "uuid";
 
 export const initialState: ApplicationState = {
+  isLogingIn: true,
   loggedIn: false,
   create_exam_input_value: "",
   allQuestionAnswered: false,

@@ -52,22 +52,32 @@ interface LoginResponse {
 export const login = createAsyncThunk(
   "exam/login",
   async (payload: LoginPayload) => {
-    const response = await fetch("https://localhost:3001/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_email: payload.name,
-        user_password: payload.password,
-      }),
-    });
-    if (!response.ok) {
-      throw new Error("Login response was not ok");
+    try {
+      const response = await fetch("https://localhost:3001/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_email: payload.name,
+          user_password: payload.password,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+      const responseData: LoginResponse = await response.json();
+      
+      return responseData;
+    } catch (error) {
+      console.log(error)
+      if (error instanceof Error) {
+        throw(error.message)
+      } else {
+        throw('Internal server error')
+      }
     }
-    const responseData: LoginResponse = await response.json();
 
-    return responseData;
   }
 );
 
@@ -326,6 +336,12 @@ export const examSlice = createSlice({
     set_showPublishPopup(state, action: PayloadAction<{ show: boolean }>) {
       state.showPublishPopup = action.payload.show;
     },
+    swich_between_login_register(state, action: PayloadAction<{ isLoginIn: boolean }>) {
+      state.isLogingIn = action.payload.isLoginIn
+    },
+    set_error_message(state, action: PayloadAction<{ message: string | null }>) {
+      state.errorMessage = action.payload.message
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchState.fulfilled, (state, action) => {
@@ -363,6 +379,7 @@ export const examSlice = createSlice({
       state.isLoading = true;
     });
     builder.addCase(login.rejected, (state, action) => {
+      state.errorMessage = action.error.message
       state.isLoading = false;
     });
   },
@@ -392,6 +409,8 @@ export const {
   set_isLoggedIn,
   set_showDeletePopup,
   set_showPublishPopup,
+  swich_between_login_register,
+  set_error_message
 } = examSlice.actions;
 
 export default examSlice.reducer;
