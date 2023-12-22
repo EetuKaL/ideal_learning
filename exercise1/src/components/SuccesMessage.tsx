@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
-import { set_error_message } from "../features/question/questionSlice";
+import { set_success_message } from "../features/question/questionSlice";
 
-type ErrorMessageProps = {};
+type SuccessMessageProps = {};
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({}) => {
-  const error = useSelector((state: RootState) => state.exams.errorMessage);
+const SuccessMessage: React.FC<SuccessMessageProps> = ({}) => {
+  const success = useSelector((state: RootState) => state.exams.successMessage);
   const [seconds, setSeconds] = useState(3);
   const dispatch = useDispatch();
 
@@ -25,15 +25,15 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({}) => {
 
   useEffect(() => {
     if (seconds === 0) {
-      dispatch(set_error_message({ message: null }));
+      dispatch(set_success_message({ message: null }));
     }
   }, [seconds]);
 
   return (
-    <div className="error-message-container">
-      <h2 className="message">{error}</h2>
+    <div className="succcess-message-container">
+      <h2 className="message">{success}</h2>
     </div>
   );
 };
 
-export default ErrorMessage;
+export default SuccessMessage;

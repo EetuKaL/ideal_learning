@@ -79,25 +79,36 @@ app.delete("/:id", isLogin, async (req, res) => {
 app.post("/register", async (req, res) => {
   if (req.body["user_email"] && req.body["user_password"]) {
     try {
-      const hashedPassword = await hashPassword(
-        req.body["user_password"].toString()
-      );
+      const { user_email, user_password, user_firstName, user_lastName } =
+        req.body;
+      const hashedPassword = await hashPassword(user_password.toString());
 
-      await registerUser(req.body["user_email"].toString(), hashedPassword);
+      await registerUser(
+        user_email.toString(),
+        hashedPassword,
+        user_firstName,
+        user_lastName
+      );
+      res.statusMessage = `Successfully registered email: ${user_email}`;
       res
         .status(200)
         .send(`Successfully created user: ${req.body["user_email"]}`);
     } catch (error) {
+      console.log(error);
       if (error instanceof Error) {
         if (error.message === errorDuplicateKey) {
-          res.status(409).send("User is already registered");
+          res.statusMessage = "Email is already registered";
+          res.status(409).send("Email is already registered");
         } else {
+          res.statusMessage = "Internal server error";
           res.status(500).send("Internal server error");
         }
       }
     }
   } else {
-    res.status(400).send("user_id or user_password in the header is missing");
+    console.log("herre");
+    res.statusMessage = "Email or password missing.";
+    res.status(400).send("user_id or user_password in the request was missing");
   }
 });
 
@@ -109,10 +120,12 @@ app.post("/login", async (req, res) => {
       const token = genrateToken(user_email);
       res.status(200).json({ token });
     } else {
+      res.statusMessage = "User or password doesn't match";
       res.status(404).send("User or password doesn't match");
     }
   } catch (error) {
-    console.log(error)
+    console.log(error);
+    res.statusMessage = "Internal server error";
     res.status(500).send("Internal server error");
   }
 });

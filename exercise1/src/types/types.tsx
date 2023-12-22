@@ -37,14 +37,17 @@ export type ApplicationState = {
   create_exam_input_value: string;
   selectedExam?: string;
   exams?: Exam[];
-  loginInput?: string;
+  emailInput?: string;
   passwordInput?: string;
+  passwordAgainInput?: string;
+  firstNameInput?: string;
+  lastNameInput?: string;
   loggedIn: boolean;
   showDeletePopup: boolean;
   showPublishPopup: boolean;
   errorMessage?: string | null;
   successMessage?: string | null;
-  isLogingIn: boolean
+  isLogingIn: boolean;
 };
 
 export type CreateQuestion = {

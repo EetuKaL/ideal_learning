@@ -67,17 +67,59 @@ export const login = createAsyncThunk(
         throw new Error(response.statusText);
       }
       const responseData: LoginResponse = await response.json();
-      
+
       return responseData;
     } catch (error) {
-      console.log(error)
       if (error instanceof Error) {
-        throw(error.message)
+        throw error.message;
       } else {
-        throw('Internal server error')
+        throw "Internal server error";
       }
     }
+  }
+);
 
+interface RegisterPayload {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export const register = createAsyncThunk(
+  "exam/register",
+  async (payload: RegisterPayload) => {
+    try {
+      const response = await fetch("https://localhost:3001/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_email: payload.email,
+          user_password: payload.password,
+          user_firstName:
+            payload.firstName && payload.firstName.length > 0
+              ? payload.firstName
+              : undefined,
+          user_lastName:
+            payload.lastName && payload.lastName.length > 0
+              ? payload.lastName
+              : undefined,
+        }),
+      });
+      console.log(response);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+      return response.statusText;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error.message;
+      } else {
+        throw "Internal server error";
+      }
+    }
   }
 );
 
@@ -177,7 +219,6 @@ export const examSlice = createSlice({
       const exam = state.exams![examIndex];
       state.createQuestion.createQuestionInput = action.payload.input;
       state.createQuestion.question_text = action.payload.input;
-      console.log("current state is: ", current(state));
     },
     handle_add_answer_input: (
       state,
@@ -195,7 +236,6 @@ export const examSlice = createSlice({
       );
       const exam = state.exams![examIndex];
       if (action.payload.id) {
-        console.log("id in payload");
         const index = exam.questions.findIndex(
           (item) => item.id === action.payload.id
         );
@@ -214,7 +254,6 @@ export const examSlice = createSlice({
         };
         clearCreateQuestionState(state);
       } else {
-        console.log("id was not in payload");
         const newQuestion: Question = {
           id: uid(),
           question_text: state.createQuestion.question_text,
@@ -223,12 +262,6 @@ export const examSlice = createSlice({
           }),
           correct_answer: state.createQuestion.correct_answer,
         };
-        console.log(
-          "pushing to exam",
-          exam.examId,
-          " and the name is: ",
-          exam.name
-        );
 
         exam.questions.push(newQuestion);
       }
@@ -321,11 +354,23 @@ export const examSlice = createSlice({
       state.exams!.splice(examIndex, 1);
       state.selectedExam = undefined;
     },
-    handle_login_input(state, action: PayloadAction<{ input: string }>) {
-      state.loginInput = action.payload.input;
+    handle_email_input(state, action: PayloadAction<{ input: string }>) {
+      state.emailInput = action.payload.input;
     },
     handle_password_input(state, action: PayloadAction<{ input: string }>) {
       state.passwordInput = action.payload.input;
+    },
+    handle_passwordAgain_input(
+      state,
+      action: PayloadAction<{ input: string }>
+    ) {
+      state.passwordAgainInput = action.payload.input;
+    },
+    handle_firstName_input(state, action: PayloadAction<{ input: string }>) {
+      state.firstNameInput = action.payload.input;
+    },
+    handle_LastName_input(state, action: PayloadAction<{ input: string }>) {
+      state.lastNameInput = action.payload.input;
     },
     set_isLoggedIn(state, action: PayloadAction<{ isLoggedIn: boolean }>) {
       state.loggedIn = action.payload.isLoggedIn;
@@ -336,11 +381,23 @@ export const examSlice = createSlice({
     set_showPublishPopup(state, action: PayloadAction<{ show: boolean }>) {
       state.showPublishPopup = action.payload.show;
     },
-    swich_between_login_register(state, action: PayloadAction<{ isLoginIn: boolean }>) {
-      state.isLogingIn = action.payload.isLoginIn
+    swich_between_login_register(
+      state,
+      action: PayloadAction<{ isLoginIn: boolean }>
+    ) {
+      state.isLogingIn = action.payload.isLoginIn;
     },
-    set_error_message(state, action: PayloadAction<{ message: string | null }>) {
-      state.errorMessage = action.payload.message
+    set_error_message(
+      state,
+      action: PayloadAction<{ message: string | null }>
+    ) {
+      state.errorMessage = action.payload.message;
+    },
+    set_success_message(
+      state,
+      action: PayloadAction<{ message: string | null }>
+    ) {
+      state.successMessage = action.payload.message;
     },
   },
   extraReducers: (builder) => {
@@ -379,7 +436,19 @@ export const examSlice = createSlice({
       state.isLoading = true;
     });
     builder.addCase(login.rejected, (state, action) => {
-      state.errorMessage = action.error.message
+      state.errorMessage = action.error.message;
+      state.isLoading = false;
+    });
+    builder.addCase(register.fulfilled, (state, action) => {
+      state.successMessage = action.payload;
+      state.isLogingIn = true;
+      state.isLoading = false;
+    });
+    builder.addCase(register.pending, (state, action) => {
+      state.isLoading = true;
+    });
+    builder.addCase(register.rejected, (state, action) => {
+      state.errorMessage = action.error.message;
       state.isLoading = false;
     });
   },
@@ -404,13 +473,17 @@ export const {
   handle_create_exam_input,
   create_exam,
   delete_exam,
-  handle_login_input,
+  handle_email_input,
   handle_password_input,
+  handle_passwordAgain_input,
+  handle_firstName_input,
+  handle_LastName_input,
   set_isLoggedIn,
   set_showDeletePopup,
   set_showPublishPopup,
   swich_between_login_register,
-  set_error_message
+  set_error_message,
+  set_success_message,
 } = examSlice.actions;
 
 export default examSlice.reducer;

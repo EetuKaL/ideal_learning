@@ -302,7 +302,7 @@
   transition: background-color 0.3s ease;
 }
 
-.error-message {
+.message {
   text-align: center;
   color: white;
   font-size: 1.2em;
@@ -320,6 +320,18 @@
   left: 50%;
   transform: translateX(-50%);
   animation: slideInOut 0.5s forwards; /* Animation applied */
+}
+
+.succcess-message-container {
+  min-height: 50px;
+  min-width: 150px;
+  border-radius: 4px;
+  background-color: #3498db;
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: slideInOut 0.5s forwards;
 }
 
 @keyframes slideInOut {
@@ -347,14 +359,12 @@
 
 .login-input {
   font-size: large;
- 
+
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
   width: 90%;
-  
 }
-
 
 .login-button {
   color: #101111;

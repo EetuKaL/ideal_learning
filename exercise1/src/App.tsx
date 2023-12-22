@@ -26,6 +26,8 @@ import {
 import { ThunkDispatch } from "@reduxjs/toolkit";
 import LoginScreen from "./screens/LoginScreen";
 import Redirect from "./components/Redirect";
+import ErrorMessage from "./components/ErrorMessage";
+import SuccessMessage from "./components/SuccesMessage";
 function App() {
   const dispatch = useDispatch();
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
@@ -106,6 +108,8 @@ function App() {
         )}
         <Route path="*" element={<Redirect />} />
       </Routes>
+      {state.errorMessage && <ErrorMessage />}
+      {state.successMessage && <SuccessMessage />}
     </div>
   );
 }

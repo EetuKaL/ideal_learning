@@ -48,9 +48,9 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
       throw new Error("Network response was not ok");
     } else {
       dispatch(delete_exam());
-      dispatch(set_showPublishPopup({ show: false }));
       navigate("/");
     }
+    dispatch(set_showPublishPopup({ show: false }));
   };
 
   const handleAnswerOptionClick = (
@@ -85,10 +85,10 @@ const ExamScreen: React.FC<ExamScreenProps> = ({ exam }) => {
       } else {
         await thunkDispatch(fetchState());
         dispatch(delete_exam());
-        dispatch(set_showDeletePopup({ show: false }));
         navigate("/");
       }
     }
+    dispatch(set_showDeletePopup({ show: false }));
   };
 
   return (
