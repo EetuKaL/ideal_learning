@@ -23,9 +23,10 @@ const insertUpdateExam_1 = require("./queries/exam/insertUpdateExam");
 const insertUser_1 = require("./queries/user/insertUser");
 const hashPassword_1 = __importDefault(require("./utils/hashPassword"));
 const selectUser_1 = require("./queries/user/selectUser");
-const Errors_1 = require("./Errors");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const genrateToken_1 = require("./middleware/genrateToken");
+const Errors_1 = require("./utils/Errors");
+const socket_io_1 = require("socket.io");
 /// Https credentials
 var privateKey = fs.readFileSync("./privateKey.key", "utf8");
 var certificate = fs.readFileSync("./certificate.crt", "utf8");
@@ -33,17 +34,55 @@ var credentials = { key: privateKey, cert: certificate };
 /// Start App
 const app = (0, express_1.default)();
 app.use(express_1.default.json()).use((0, cors_1.default)());
+var httpsServer = https_1.default.createServer(credentials, app);
+const io = new socket_io_1.Server(httpsServer, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: '*'
+    }
+});
+// Socket.IO handling
+io.on('connection', (socket) => {
+    console.log(`User connected ${socket.id}`);
+    socket.on('messageFromClient', (data) => {
+        console.log("data: ", data);
+    });
+});
+function emitMessage(notify) {
+    let msg;
+    console.log('trying to emit message');
+    console.log(notify);
+    if (notify.type === 'insert') {
+        msg = 'New Exam is available';
+    }
+    else if (notify.type === 'update') {
+        msg = `${notify.name} has been updated`;
+    }
+    else if (notify.type === 'delete') {
+        msg = `${notify.name} has been deleted`;
+    }
+    else {
+        msg = 'message from server';
+    }
+    io.emit('messageFromServer', { data: msg });
+}
 app.get("/", middleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let response;
+    let statusMessage;
+    let statusCode;
+    let user;
     try {
-        let user = yield (0, selectExam_1.fetchFullExams)();
-        response = { statusCode: 200, body: user };
+        user = yield (0, selectExam_1.fetchFullExams)();
+        /*     statusMessage = "User or password doesn't match"; */
+        statusCode = 200;
     }
     catch (error) {
-        response = { statusCode: 500, message: "Internal server error:" };
+        statusMessage = "Internal Server Error";
+        statusCode = 500;
     }
     finally {
-        res.json(response);
+        res.statusMessage = statusMessage || "";
+        res.statusCode = statusCode || 500;
+        res.json({ body: user });
     }
 }));
 app.get("/:id", middleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -63,7 +102,7 @@ app.get("/:id", middleware_1.default, (req, res) => __awaiter(void 0, void 0, vo
 app.post("/", middleware_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let exam = req["body"];
-        yield (0, insertUpdateExam_1.postExam)(exam);
+        yield (0, insertUpdateExam_1.postExam)(exam, emitMessage);
         res
             .status(200)
             .send({ statusCode: 200, message: "succesfully posted exam" });
@@ -77,7 +116,7 @@ app.delete("/:id", middleware_1.default, (req, res) => __awaiter(void 0, void 0,
     const examID = req.params.id;
     try {
         if (examID) {
-            (0, deleteExam_1.deleteExam)(parseInt(examID));
+            (0, deleteExam_1.deleteExam)(parseInt(examID), emitMessage);
             res.status(200).json({ message: "Exam deleted successfully" });
         }
     }
@@ -137,7 +176,6 @@ app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(500).send("Internal server error");
     }
 }));
-var httpsServer = https_1.default.createServer(credentials, app);
 httpsServer.listen(3001, () => {
     console.log(`Example app listening on port 3001`);
 });

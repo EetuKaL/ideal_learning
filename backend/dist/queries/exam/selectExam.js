@@ -11,15 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchExamsWithSingleQuery = exports.fetchFullExams = exports.fetchAnswerOptions = exports.fetchQuestions = exports.fetchExams = void 0;
 const pg_1 = require("pg");
+const sqlCredentials_1 = require("../../sqlCredentials");
 function fetchExams(examId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const client = new pg_1.Client({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const client = new pg_1.Client(sqlCredentials_1.sqlCredentials);
         try {
             yield client.connect();
             let result;
@@ -50,6 +45,7 @@ function fetchExams(examId) {
         }
         catch (err) {
             console.error(err);
+            throw new Error("Fetching Exams Failed");
         }
         finally {
             yield client.end();
@@ -59,13 +55,7 @@ function fetchExams(examId) {
 exports.fetchExams = fetchExams;
 function fetchQuestions(examId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const client = new pg_1.Client({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const client = new pg_1.Client(sqlCredentials_1.sqlCredentials);
         try {
             yield client.connect();
             const selectedId = examId;
@@ -94,13 +84,7 @@ function fetchQuestions(examId) {
 exports.fetchQuestions = fetchQuestions;
 function fetchAnswerOptions(questionId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const client = new pg_1.Client({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const client = new pg_1.Client(sqlCredentials_1.sqlCredentials);
         try {
             yield client.connect();
             const selectedId = questionId;
@@ -148,7 +132,6 @@ function fetchFullExams(id) {
                     })));
                     return Object.assign(Object.assign({}, exam), { questions: updatedQuestions });
                 })));
-                console.log(examsWithQuestionsAndAnswers);
                 return examsWithQuestionsAndAnswers;
             }
             else {
@@ -157,20 +140,14 @@ function fetchFullExams(id) {
             }
         }
         catch (err) {
-            console.error(err);
+            throw new Error("Fetching exams failed");
         }
     });
 }
 exports.fetchFullExams = fetchFullExams;
 function fetchExamsWithSingleQuery(examId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const client = new pg_1.Client({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const client = new pg_1.Client(sqlCredentials_1.sqlCredentials);
         try {
             yield client.connect();
             let result;

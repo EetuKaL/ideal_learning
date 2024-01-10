@@ -11,15 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUser = void 0;
 const pg_1 = require("pg");
+const sqlCredentials_1 = require("../../sqlCredentials");
 function getUser(user_id) {
     return __awaiter(this, void 0, void 0, function* () {
-        const pool = new pg_1.Pool({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const pool = new pg_1.Pool(sqlCredentials_1.sqlCredentials);
         const client = yield pool.connect();
         const userResult = yield client.query({
             text: `

@@ -1,13 +1,8 @@
 import { Pool } from "pg";
+import { sqlCredentials } from "../../sqlCredentials";
 
 export async function getUser(user_id: string) {
-  const pool = new Pool({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
+  const pool = new Pool(sqlCredentials);
   const client = await pool.connect();
   const userResult = await client.query({
     text: `

@@ -13,17 +13,12 @@ exports.postExam = void 0;
 const pg_1 = require("pg");
 const deleteExam_1 = require("./deleteExam");
 const isNumber_1 = require("../../utils/isNumber");
+const sqlCredentials_1 = require("../../sqlCredentials");
 let generatedExamId;
 let generatedQuestionId;
-function postExam(exam) {
+function postExam(exam, emitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
-        const pool = new pg_1.Pool({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const pool = new pg_1.Pool(sqlCredentials_1.sqlCredentials);
         const client = yield pool.connect();
         try {
             yield client.query("BEGIN");
@@ -31,6 +26,15 @@ function postExam(exam) {
             if (exam.examId && (0, isNumber_1.isNumber)(exam.examId)) {
                 examID = parseInt(exam.examId);
             }
+            client.query('LISTEN notification_channel'); // Replace 'my_channel' with your channel name
+            client.on('notification', (msg) => {
+                console.log('Received notification:', msg.payload);
+                if (msg.payload) {
+                    const dbNotify = JSON.parse(msg.payload);
+                    emitMessage(dbNotify);
+                }
+                // Handle the received notification data here
+            });
             /// Insert / Update Exam
             yield createExam(client, exam.name, exam.created_at, examID);
             for (const question of exam.questions) {
@@ -69,6 +73,7 @@ function postExam(exam) {
             yield client.query("COMMIT");
         }
         catch (error) {
+            console.log(error);
             yield client.query("ROLLBACK");
             throw new Error("Inserting/Updating an exam failed");
         }

@@ -1,5 +1,5 @@
 import express, { Express, Request, Response, response } from "express";
-import { Exam } from "./types/types";
+import { DBNotify, Exam } from "./types/types";
 const fs = require("fs");
 import cors from "cors";
 import isLogin from "./middleware/middleware";
@@ -10,9 +10,11 @@ import { postExam } from "./queries/exam/insertUpdateExam";
 import { registerUser } from "./queries/user/insertUser";
 import hashPassword from "./utils/hashPassword";
 import { getUser } from "./queries/user/selectUser";
-import { errorDuplicateKey } from "./Errors";
 import bcrypt from "bcrypt";
 import { genrateToken } from "./middleware/genrateToken";
+import { errorDuplicateKey } from "./utils/Errors";
+import {Server as SocketServer } from "socket.io"
+import http from 'http'
 
 /// Https credentials
 var privateKey = fs.readFileSync("./privateKey.key", "utf8");
@@ -24,15 +26,60 @@ const app = express();
 
 app.use(express.json()).use(cors());
 
+var httpsServer = https.createServer(credentials, app);
+
+const io = new SocketServer(httpsServer, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: '*'
+  }
+});
+
+// Socket.IO handling
+io.on('connection', (socket) => {
+  console.log(`User connected ${socket.id}`);
+  socket.on('messageFromClient', (data) => {
+    console.log("data: ", data);
+  });
+  
+});
+
+
+function emitMessage(notify: DBNotify) {
+  let msg: string;
+  console.log('trying to emit message')
+  console.log(notify)
+  if(notify.type === 'insert') {
+    msg = 'New Exam is available'
+  } else if ( notify.type === 'update') {
+    msg = `${notify.name} has been updated`
+  } else if (notify.type === 'delete') {
+    msg = `${notify.name} has been deleted`
+  } else {
+    msg = 'message from server'
+  }
+  io.emit('messageFromServer', {data: msg})
+}
+
+
 app.get("/", isLogin, async (req, res) => {
-  let response;
+  let statusMessage
+  let statusCode
+  let user
   try {
-    let user = await fetchFullExams();
-    response = { statusCode: 200, body: user };
+     user = await fetchFullExams();
+    
+/*     statusMessage = "User or password doesn't match"; */
+    statusCode = 200
+      
+    
   } catch (error) {
-    response = { statusCode: 500, message: "Internal server error:" };
+    statusMessage = "Internal Server Error"
+    statusCode = 500
   } finally {
-    res.json(response);
+  res.statusMessage = statusMessage || ""
+  res.statusCode = statusCode || 500
+   res.json({body: user})
   }
 });
 
@@ -52,7 +99,7 @@ app.get("/:id", isLogin, async (req, res) => {
 app.post("/", isLogin, async (req, res) => {
   try {
     let exam: Exam = req["body"];
-    await postExam(exam);
+    await postExam(exam, emitMessage);
     res
       .status(200)
       .send({ statusCode: 200, message: "succesfully posted exam" });
@@ -66,7 +113,7 @@ app.delete("/:id", isLogin, async (req, res) => {
   const examID = req.params.id;
   try {
     if (examID) {
-      deleteExam(parseInt(examID));
+      deleteExam(parseInt(examID), emitMessage);
       res.status(200).json({ message: "Exam deleted successfully" });
     }
   } catch (error) {
@@ -130,7 +177,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-var httpsServer = https.createServer(credentials, app);
 
 httpsServer.listen(3001, () => {
   console.log(`Example app listening on port 3001`);

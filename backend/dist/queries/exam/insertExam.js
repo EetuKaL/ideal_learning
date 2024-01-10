@@ -12,17 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.postNewExam = void 0;
 const pg_1 = require("pg");
 const deleteExam_1 = require("./deleteExam");
+const sqlCredentials_1 = require("../../sqlCredentials");
 let generatedExamId;
 let generatedQuestionId;
 function postNewExam(exam) {
     return __awaiter(this, void 0, void 0, function* () {
-        const pool = new pg_1.Pool({
-            host: "localhost",
-            port: 5432,
-            database: "postgres",
-            user: "postgres",
-            password: "kissa123",
-        });
+        const pool = new pg_1.Pool(sqlCredentials_1.sqlCredentials);
         try {
             const client = yield pool.connect();
             ///// Check exam existence

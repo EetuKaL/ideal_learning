@@ -402,9 +402,11 @@ export const examSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(fetchState.fulfilled, (state, action) => {
+      // do not include local exam if published tag and not in fetched exams
       const examsToAdd = state.exams
         ? state.exams
             ?.filter((item) => item !== null)
+            .filter((localExam) => !localExam.published_at)
             .filter(
               (localExam: Exam) =>
                 !action.payload?.some(
@@ -412,6 +414,7 @@ export const examSlice = createSlice({
                 )
             )
         : [];
+        console.log("Exams to Add: ")
       state.exams = examsToAdd?.concat(action.payload);
       state.isLoading = false;
     });
@@ -421,9 +424,8 @@ export const examSlice = createSlice({
     builder.addCase(fetchState.rejected, (state, action) => {
       if (action.error.message === "400") {
         localStorage.removeItem("token");
-      } else {
-        state.errorMessage = action.error.message;
-      }
+      } 
+      state.errorMessage = action.error.message;
       state.isLoading = false;
     });
     builder.addCase(login.fulfilled, (state, action) => {

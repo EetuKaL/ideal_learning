@@ -8,6 +8,9 @@ export type Question = {
   answer_correct?: boolean;
 };
 
+export type DBNotify = {name: string, type: string, exam_id: number}
+
+
 export type AnswerOption = {
   deleted?: boolean;
   answerOptionId?: string;

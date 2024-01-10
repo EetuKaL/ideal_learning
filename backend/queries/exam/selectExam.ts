@@ -1,13 +1,9 @@
+import { error } from "console";
 import { Client } from "pg";
+import { sqlCredentials } from "../../sqlCredentials";
 
 export async function fetchExams(examId?: number) {
-  const client = new Client({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
+  const client = new Client(sqlCredentials);
   try {
     await client.connect();
 
@@ -40,19 +36,14 @@ export async function fetchExams(examId?: number) {
     return exams;
   } catch (err) {
     console.error(err);
+    throw new Error("Fetching Exams Failed")
   } finally {
     await client.end();
   }
 }
 
 export async function fetchQuestions(examId: number) {
-  const client = new Client({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
+  const client = new Client(sqlCredentials);
   try {
     await client.connect();
 
@@ -82,13 +73,7 @@ export async function fetchQuestions(examId: number) {
 }
 
 export async function fetchAnswerOptions(questionId: number) {
-  const client = new Client({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
+  const client = new Client(sqlCredentials);
   try {
     await client.connect();
 
@@ -153,25 +138,20 @@ export async function fetchFullExams(id?: number) {
           };
         })
       );
-      console.log(examsWithQuestionsAndAnswers);
+   
       return examsWithQuestionsAndAnswers;
     } else {
       console.error("no exams");
       return [];
     }
   } catch (err) {
-    console.error(err);
+    
+    throw new Error("Fetching exams failed")
   }
 }
 
 export async function fetchExamsWithSingleQuery(examId?: number) {
-  const client = new Client({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
+  const client = new Client(sqlCredentials);
   try {
     await client.connect();
 

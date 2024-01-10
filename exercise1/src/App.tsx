@@ -22,18 +22,40 @@ import {
   check_answers,
   fetchState,
   set_isLoggedIn,
+  set_success_message,
 } from "./features/question/questionSlice";
 import { ThunkDispatch } from "@reduxjs/toolkit";
 import LoginScreen from "./screens/LoginScreen";
 import Redirect from "./components/Redirect";
 import ErrorMessage from "./components/ErrorMessage";
 import SuccessMessage from "./components/SuccesMessage";
+import io from 'socket.io-client';
+
 function App() {
+  
   const dispatch = useDispatch();
   const thunkDispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const state = useSelector((state: RootState) => state.exams);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const socket = io('https://localhost:3001');  // Replace with your Socket.IO server URL
+
+    socket.on('connect', () => {
+      console.log('Connected to the server');
+      socket.on('messageFromServer', (data: any) => {
+        // Temp solution to notify from database changes. mb show popup to fetch changes?
+        dispatch(set_success_message({message: data.data}))
+      })
+      socket.emit('messageFromClient', {data: "Socket is opened"})
+    });
+    // Other socket event listeners and handling can be added here
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   /// Get Selected exam
   const exam: Exam | undefined =

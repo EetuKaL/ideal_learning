@@ -1,21 +1,14 @@
 import { Pool, PoolClient, QueryResult } from "pg";
-import { Exam } from "../../types/types";
+import { DBNotify, Exam } from "../../types/types";
 import { deleteAnswerOption, deleteExam, deleteQuestion } from "./deleteExam";
-import { log } from "console";
-import { fetchExams } from "./selectExam";
 import { isNumber } from "../../utils/isNumber";
+import { sqlCredentials } from "../../sqlCredentials";
 
 let generatedExamId: number;
 let generatedQuestionId: number;
 
-export async function postExam(exam: Exam) {
-  const pool = new Pool({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
+export async function postExam(exam: Exam, emitMessage: any) {
+  const pool = new Pool(sqlCredentials);
 
   const client = await pool.connect();
 
@@ -27,6 +20,17 @@ export async function postExam(exam: Exam) {
       examID = parseInt(exam.examId);
     }
 
+    client.query('LISTEN notification_channel'); // Replace 'my_channel' with your channel name
+
+  client.on('notification', (msg) => {
+    console.log('Received notification:', msg.payload);
+    if (msg.payload) {
+      const dbNotify: DBNotify = JSON.parse(msg.payload)
+      emitMessage(dbNotify)
+
+    }
+    // Handle the received notification data here
+  });
     /// Insert / Update Exam
     await createExam(client, exam.name, exam.created_at, examID);
 
@@ -76,6 +80,7 @@ export async function postExam(exam: Exam) {
     }
     await client.query("COMMIT");
   } catch (error) {
+    console.log(error)
     await client.query("ROLLBACK");
     throw new Error("Inserting/Updating an exam failed");
   } finally {

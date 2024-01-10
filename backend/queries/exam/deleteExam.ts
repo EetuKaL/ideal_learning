@@ -1,29 +1,39 @@
-import { Client, PoolClient } from "pg";
+import { Client, Pool, PoolClient } from "pg";
+import { sqlCredentials } from "../../sqlCredentials";
+import { DBNotify } from "../../types/types";
 
-export async function deleteExam(exam_id: number) {
-  const client = new Client({
-    host: "localhost",
-    port: 5432,
-    database: "postgres",
-    user: "postgres",
-    password: "kissa123",
-  });
 
+export async function deleteExam(exam_id: number, emitMessage:any) {
+  
+  const pool = new Pool(sqlCredentials);
+  const client = await pool.connect();
   try {
-    await client.connect();
+
+    await client.query("BEGIN");
+    client.query('LISTEN notification_channel'); // Replace 'my_channel' with your channel name
+
     const query = {
       text: `
       DELETE FROM exams WHERE exam_id = $1;
-        `,
+      `,
       values: [exam_id],
     };
+    client.on('notification', (msg) => {
+      if (msg.payload) {
+        const dbNotify: DBNotify = JSON.parse(msg.payload)
+        emitMessage(dbNotify)
+  
+      }
+    });
     const result = await client.query(query);
+    await client.query("COMMIT");
   } catch (err) {
-    console.error(err);
+    console.log(err)
+    await client.query("ROLLBACK");
     throw new Error("Deleting from table failed");
   } finally {
     console.log("Succesfuly Deleted Exam");
-    await client.end();
+   client.release();
   }
 }
 
